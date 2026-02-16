@@ -48,16 +48,6 @@ public class AttendanceController {
         return attendanceService.getSheetByWorshipTeamName(teamName, date);
     }
 
-    @PostMapping("/sheet")
-    // LEE: sheet에 날짜 정보 넣기?
-    public String saveSheet(
-            @RequestParam LocalDate date,
-            @RequestBody AttendanceDto.Sheet sheet
-    ) {
-        attendanceService.saveSheet(date, sheet);
-        return "save success.";
-    }
-
     @GetMapping("/classroom")
     public List<AttendanceDto.ClassroomSummary> getClassroomList(
             @RequestParam int grade
@@ -70,11 +60,51 @@ public class AttendanceController {
         return attendanceService.getAdministrativceList();
     }
 
-    @GetMapping("/newFriend")
-    public List<StudentDto.Info> getNewFriendList() {
-        return attendanceService.getNewFriends();
+    @PostMapping("/sheet")
+    // LEE: sheet에 날짜 정보 넣기?
+    public String saveSheet(
+            @RequestParam LocalDate date,
+            @RequestBody AttendanceDto.Sheet sheet
+    ) {
+        attendanceService.saveSheet(date, sheet);
+        return "save success.";
     }
 
+    @GetMapping("/new-friend/sheet")
+    public AttendanceDto.Sheet getNewFriendList(
+            @RequestParam LocalDate date
+    ) {
+        return attendanceService.getSheetOfNewFriend(date);
+    }
+
+    /*@GetMapping("/new-friend")
+    public List<StudentDto.Info> getNewFriendList() {
+        return attendanceService.getNewFriends();
+    }*/
+
+    @PostMapping("/new-friend")
+    public String registerNewFriend(
+            @RequestBody StudentDto.Info info
+    ) {
+        return "save success. " + attendanceService.registerStudent(info);
+    }
+
+    @PutMapping("/new-friend")
+    public String promoteNewFriend(
+            @RequestBody StudentDto.Info info
+    ) {
+        return "save success. " + attendanceService.updateStudent(info);
+    }
+
+
+    @GetMapping("/student")
+    public StudentDto.Info setStudent(
+            @RequestParam Long id
+    ) {
+        return attendanceService.getStudent(id);
+    }
+
+    //LEE: 관리자 페이지용.
     @PostMapping("/student")
     public String registerStudent(
             @RequestBody StudentDto.Info info

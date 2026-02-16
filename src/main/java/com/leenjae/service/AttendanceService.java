@@ -66,6 +66,12 @@ public class AttendanceService {
         return getSheet(students, null, date);
     }
 
+    public AttendanceDto.Sheet getSheetOfNewFriend(LocalDate date) {
+        List<Student> students = studentRepository.findByStatus(Status.NEW.getCode());
+
+        return getSheet(students, null, date);
+    }
+
     private AttendanceDto.Sheet getSheet(List<Student> students, Teacher teacher, LocalDate date) {
         List<AttendanceDto.StudentCheck> studentCheckList = null;
         if (students != null) {
@@ -264,4 +270,23 @@ public class AttendanceService {
         studentRepository.deleteById(studentId);
     }
 
+    public StudentDto.Info getStudent(Long id) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow();
+        Classroom classroom = student.getClassroom();
+        return StudentDto.Info.builder()
+                .classroomId(classroom.getId())
+                .name(student.getName())
+                .gender(student.getGender())
+                .school(student.getSchool())
+                .phone(student.getPhone())
+                .parentPhone(student.getParentPhone())
+                .address(student.getAddress())
+                .birthday(student.getBirthday())
+                .status(student.getStatus())
+                .registeredAt(student.getRegisteredAt())
+                .promotedAt(student.getPromotedAt())
+                .remark(student.getRemark())
+                .build();
+    }
 }

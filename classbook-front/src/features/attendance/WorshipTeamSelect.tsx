@@ -1,5 +1,5 @@
 import {generatePath, useNavigate} from "react-router-dom";
-import {paths} from "../constants/paths.tsx";
+import {paths} from "../../constants/paths.tsx";
 
 const WorshipTeamSelect = () => {
     const navigate = useNavigate();

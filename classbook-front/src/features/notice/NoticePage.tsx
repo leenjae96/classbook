@@ -1,6 +1,6 @@
 import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
-import type {BirthdayResponse, StudentBirthday, TeacherBirthday} from "../constants/types.tsx";
+import type {BirthdayResponse, StudentBirthday, TeacherBirthday} from "../../constants/types.tsx";
 
 const NoticePage = () => {
     const navigate = useNavigate();

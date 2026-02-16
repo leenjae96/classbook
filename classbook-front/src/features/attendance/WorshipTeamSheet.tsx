@@ -1,6 +1,6 @@
 import {useState, useRef, useEffect} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import type {Sheet, StudentCheck} from "../constants/types.tsx";
+import type {Sheet, StudentCheck} from "../../constants/types.tsx";
 
 const WorshipTeamSheet = () => {
     // URL 파라미터 타입 지정 (className은 문자열)

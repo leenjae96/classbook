@@ -1,5 +1,5 @@
 import {generatePath, useNavigate} from "react-router-dom";
-import {paths} from "../constants/paths.tsx";
+import {paths} from "../../constants/paths.tsx";
 
 const CategorySelect = () => {
     const navigate = useNavigate();
@@ -20,12 +20,13 @@ const CategorySelect = () => {
                         onPointerUp={() => navigate(paths.administrativeTeacherSelect.url)}>
                     반목 외
                 </button>
-
                 <button key='new-friends' className="menu-btn"
                         onPointerUp={() => navigate(paths.newfriend.url)}>
                     새친구
                 </button>
             </div>
+            <hr style={{margin: '10px 0 20px 0'}}/>
+
             <button key='worshipTeam' className="menu-btn"
                     onPointerUp={() => navigate(paths.worshipTeamSelect.url)}>
                 찬양팀

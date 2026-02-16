@@ -1,15 +1,15 @@
 import {BrowserRouter, Route, Routes, useNavigate} from "react-router-dom";
 import {paths} from "./constants/paths.tsx";
-import CategorySelect from "./attendance/CategorySelect.tsx";
-import ClassroomSelect from "./attendance/ClassroomSelect.tsx";
-import ClassroomSheet from "./attendance/ClassroomSheet.tsx";
-import AdministrativeSelect from "./attendance/AdministrativeSelect.tsx";
-import AdministrativeSheet from "./attendance/AdministrativeSheet.tsx";
-import NewFriend from "./attendance/NewFriend.tsx";
-import WorshipTeamSelect from "./attendance/WorshipTeamSelect.tsx";
-import WorshipTeamSheet from "./attendance/WorshipTeamSheet.tsx";
-import NoticePage from "./notice/NoticePage.tsx";
-import StatisticsPage from "./statistics/StatisticsPage.tsx";
+import CategorySelect from "./features/attendance/CategorySelect.tsx";
+import ClassroomSelect from "./features/attendance/ClassroomSelect.tsx";
+import ClassroomSheet from "./features/attendance/ClassroomSheet.tsx";
+import AdministrativeSelect from "./features/attendance/AdministrativeSelect.tsx";
+import AdministrativeSheet from "./features/attendance/AdministrativeSheet.tsx";
+import NewFriend from "./features/attendance/NewFriend.tsx";
+import WorshipTeamSelect from "./features/attendance/WorshipTeamSelect.tsx";
+import WorshipTeamSheet from "./features/attendance/WorshipTeamSheet.tsx";
+import NoticePage from "./features/notice/NoticePage.tsx";
+import StatisticsPage from "./features/statistics/StatisticsPage.tsx";
 import './App.css';
 
 const Home = () => {
