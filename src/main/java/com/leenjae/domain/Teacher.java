@@ -12,6 +12,9 @@ import java.util.Set;
 @Entity
 @Getter
 @NoArgsConstructor
+@ToString
+@Table(name = "teacher")
+@Comment("선생님 정보")
 public class Teacher {
 
     @Id

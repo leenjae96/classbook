@@ -10,6 +10,8 @@ import org.hibernate.annotations.Comment;
 @Entity
 @Getter
 @NoArgsConstructor(access= AccessLevel.PROTECTED)
+@Table(name = "classroom")
+@Comment("반 정보")
 public class Classroom {
     @Id
     @Comment("식별자")

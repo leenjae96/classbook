@@ -17,6 +17,8 @@ export interface TeacherInfo {
 
 export interface StudentInfo {
     id: number;
+    grade: number;
+    classNo: string;
     classroomId: number;
     name: string;
     gender: boolean;
@@ -31,18 +33,18 @@ export interface StudentInfo {
     remark: string;
 }
 
-//
 export interface Sheet {
-    studentChecks: StudentCheck[];
-    teacherCheck: TeacherCheck;
+    studentAttendances: StudentAttendance[];
+    teacherReport: TeacherReport;
+    teacherAttendances: TeacherAttendance[];
 }
-export interface StudentCheck {
+export interface StudentAttendance {
     id: number;
     studentName: string;
     status: boolean;
     comments: string;
 }
-export interface TeacherCheck {
+export interface TeacherReport {
     id: number;
     worship: number;
     otn: boolean;
@@ -50,7 +52,13 @@ export interface TeacherCheck {
     comments: string;
 }
 
-//
+export interface TeacherAttendance {
+    id: number;
+    teacherName: string;
+    status: boolean;
+    comments: string;
+}
+
 export interface BirthdayResponse {
     month: number;
     studentBirthdays: StudentBirthday[]

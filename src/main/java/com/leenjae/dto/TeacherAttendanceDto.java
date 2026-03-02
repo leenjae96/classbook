@@ -1,6 +1,6 @@
 package com.leenjae.dto;
 
-import com.leenjae.domain.TeacherAttendance;
+import com.leenjae.domain.TeacherReport;
 
 public class TeacherAttendanceDto {
     public record Request(
@@ -19,13 +19,13 @@ public class TeacherAttendanceDto {
             Integer dawnPray,
             String comments
     ) {
-        public static Response from(TeacherAttendance teacherAttendance) {
+        public static Response from(TeacherReport teacherReport) {
             return new Response(
-                    teacherAttendance.getId(),
-                    teacherAttendance.getWorship(),
-                    teacherAttendance.getOtn(),
-                    teacherAttendance.getDawnPray(),
-                    teacherAttendance.getComments()
+                    teacherReport.getId(),
+                    teacherReport.getWorship(),
+                    teacherReport.getOtn(),
+                    teacherReport.getDawnPray(),
+                    teacherReport.getComments()
             );
         }
 

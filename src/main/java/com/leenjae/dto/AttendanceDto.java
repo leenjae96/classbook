@@ -1,9 +1,11 @@
 package com.leenjae.dto;
 
 import lombok.Builder;
+import lombok.ToString;
 
 import java.util.List;
 
+@ToString
 public class AttendanceDto {
 
     @Builder
@@ -13,8 +15,7 @@ public class AttendanceDto {
             String classNo,
             Long teacherId,
             String teacherName
-    ) {
-    }
+    ) {}
 
     public record AdministrativeSummary(
             Integer roleCode,
@@ -25,12 +26,13 @@ public class AttendanceDto {
 
     @Builder
     public record Sheet(
-            List<StudentCheck> studentChecks,
-            TeacherCheck teacherCheck
+            List<StudentAttendance> studentAttendances,
+            TeacherReport teacherReport,
+            List<TeacherAttendance> teacherAttendances
     ) {}
 
     @Builder
-    public record StudentCheck(
+    public record StudentAttendance(
             Long id,
             String studentName,
             Boolean status,
@@ -38,11 +40,19 @@ public class AttendanceDto {
     ) {}
 
     @Builder
-    public record TeacherCheck(
+    public record TeacherReport(
             Long id,
             Integer worship,
             Boolean otn,
             Integer dawnPray,
+            String comments
+    ) {}
+
+    @Builder
+    public record TeacherAttendance(
+            Long id,
+            String teacherName,
+            Boolean status,
             String comments
     ) {}
 }

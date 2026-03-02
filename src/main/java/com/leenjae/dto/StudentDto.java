@@ -10,6 +10,8 @@ public class StudentDto {
     @Builder
     public record Info(
             Long id,
+            Integer grade,
+            String classNo,
             Long classroomId,
             String name,
             Boolean gender,

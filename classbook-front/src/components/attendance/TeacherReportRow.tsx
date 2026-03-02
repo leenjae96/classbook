@@ -1,14 +1,14 @@
-import type {TeacherCheck} from '../../constants/types';
+import type {TeacherReport} from '../../constants/types';
 
 interface Props {
-    teacher: TeacherCheck;
+    teacher: TeacherReport;
     onWorshipChange: (worship: number) => void;
     onOtnChange: (otn: number) => void;
     onDawnPrayChange: (dawnPray: number) => void;
     onCommentsChange: (comment: string) => void;
 }
 
-export const TeacherRow = ({teacher, onWorshipChange, onOtnChange, onDawnPrayChange, onCommentsChange}: Props) => {
+export const TeacherReportRow = ({teacher, onWorshipChange, onOtnChange, onDawnPrayChange, onCommentsChange}: Props) => {
     return (
         <div className="content" style={{position: 'relative'}}>
             <div style={{marginBottom: '20px'}}>

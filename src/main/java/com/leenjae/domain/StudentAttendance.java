@@ -12,9 +12,8 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(
-        name = "student_attendance"
-)
+@Table(name = "student_attendance")
+@Comment("학생 출석 정보")
 public class StudentAttendance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

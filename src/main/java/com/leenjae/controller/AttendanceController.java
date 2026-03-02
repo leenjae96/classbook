@@ -6,6 +6,7 @@ import com.leenjae.dto.TeacherDto;
 import com.leenjae.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -15,7 +16,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/attendances")
-@CrossOrigin(origins = "http://localhost:9999")
+//@CrossOrigin(origins = "http://localhost:9999")
 public class AttendanceController {
 
     private final AttendanceService attendanceService;
@@ -62,12 +63,12 @@ public class AttendanceController {
 
     @PostMapping("/sheet")
     // LEE: sheet에 날짜 정보 넣기?
-    public String saveSheet(
+    public ResponseEntity<Void> saveSheet(
             @RequestParam LocalDate date,
             @RequestBody AttendanceDto.Sheet sheet
     ) {
         attendanceService.saveSheet(date, sheet);
-        return "save success.";
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/new-friend/sheet")
@@ -83,17 +84,17 @@ public class AttendanceController {
     }*/
 
     @PostMapping("/new-friend")
-    public String registerNewFriend(
+    public ResponseEntity<Void> registerNewFriend(
             @RequestBody StudentDto.Info info
     ) {
-        return "save success. " + attendanceService.registerStudent(info);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/new-friend")
-    public String promoteNewFriend(
+    public ResponseEntity<Void> promoteNewFriend(
             @RequestBody StudentDto.Info info
     ) {
-        return "save success. " + attendanceService.updateStudent(info);
+        return ResponseEntity.ok().build();
     }
 
 
@@ -106,23 +107,23 @@ public class AttendanceController {
 
     //LEE: 관리자 페이지용.
     @PostMapping("/student")
-    public String registerStudent(
+    public ResponseEntity<Void> registerStudent(
             @RequestBody StudentDto.Info info
     ) {
-        return "save success. " + attendanceService.registerStudent(info);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/student")
-    public String updateStudent(
+    public ResponseEntity<Void> updateStudent(
             @RequestBody StudentDto.Info info
     ) {
-        return "save success. " + attendanceService.updateStudent(info);
+        return ResponseEntity.ok().build();
     }
     @DeleteMapping("/student")
-    public String saveStudent(
+    public ResponseEntity<Void> saveStudent(
             @RequestParam Long studentId
     ) {
         attendanceService.deleteStudent(studentId);
-        return "delete success.";
+        return ResponseEntity.ok().build();
     }
 }

@@ -24,6 +24,7 @@ public class AttendanceService {
     private final StudentRepository studentRepository;
     private final StudentAttendanceRepository studentAttendanceRepository;
     private final TeacherRepository teacherRepository;
+    private final TeacherReportRepository teacherReportRepository;
     private final TeacherAttendanceRepository teacherAttendanceRepository;
 
     public List<AttendanceDto.ClassroomSummary> getClassroomListByGrade(int grade) {
@@ -42,7 +43,6 @@ public class AttendanceService {
     public AttendanceDto.Sheet getSheetByTeacherId(long teacherId, LocalDate date) {
         List<Student> students = studentRepository.findByTeacherId(teacherId);
         Teacher teacher = teacherRepository.findById(teacherId).orElseThrow();
-
         return getSheet(students, teacher, date);
     }
 
@@ -73,7 +73,7 @@ public class AttendanceService {
     }
 
     private AttendanceDto.Sheet getSheet(List<Student> students, Teacher teacher, LocalDate date) {
-        List<AttendanceDto.StudentCheck> studentCheckList = null;
+        List<AttendanceDto.StudentAttendance> studentAttendanceList = null;
         if (students != null) {
             Map<Long, StudentAttendance> studentAttendanceMap =
                     studentAttendanceRepository.findByStudentIdInAndDate(
@@ -86,18 +86,18 @@ public class AttendanceService {
                                     a -> a
                             ));
 
-            studentCheckList = students.stream()
+            studentAttendanceList = students.stream()
                     .map(student -> {
                         StudentAttendance sa = studentAttendanceMap.get(student.getId());
                         if (sa == null) {
-                            return AttendanceDto.StudentCheck.builder()
+                            return AttendanceDto.StudentAttendance.builder()
                                     .id(student.getId())
                                     .studentName(student.getName())
                                     .status(false)
                                     .comments(null)
                                     .build();
                         } else {
-                            return AttendanceDto.StudentCheck.builder()
+                            return AttendanceDto.StudentAttendance.builder()
                                     .id(student.getId())
                                     .studentName(student.getName())
                                     .status(sa.getStatus())
@@ -105,15 +105,15 @@ public class AttendanceService {
                                     .build();
                         }
                     })
-                    .sorted(Comparator.comparing(AttendanceDto.StudentCheck::studentName))
+                    .sorted(Comparator.comparing(AttendanceDto.StudentAttendance::studentName))
                     .toList();
         }
 
-        AttendanceDto.TeacherCheck teacherCheck = null;
+        AttendanceDto.TeacherReport teacherReport = null;
         if (teacher != null) {
-            TeacherAttendance teacherAttendance = teacherAttendanceRepository.findByTeacherIdAndDate(teacher.getId(), date);
-            if (teacherAttendance == null) {
-                teacherCheck = AttendanceDto.TeacherCheck.builder()
+            TeacherReport tr = teacherReportRepository.findByTeacherIdAndDate(teacher.getId(), date);
+            if (tr == null) {
+                teacherReport = AttendanceDto.TeacherReport.builder()
                         .id(teacher.getId())
                         .worship(-1)
                         .otn(false)
@@ -121,74 +121,141 @@ public class AttendanceService {
                         .comments(null)
                         .build();
             } else {
-                teacherCheck = AttendanceDto.TeacherCheck.builder()
+                teacherReport = AttendanceDto.TeacherReport.builder()
                         .id(teacher.getId())
-                        .otn(teacherAttendance.getOtn())
-                        .worship(teacherAttendance.getWorship())
-                        .dawnPray(teacherAttendance.getDawnPray())
-                        .comments(teacherAttendance.getComments())
+                        .otn(tr.getOtn())
+                        .worship(tr.getWorship())
+                        .dawnPray(tr.getDawnPray())
+                        .comments(tr.getComments())
                         .build();
             }
         }
 
+        List<AttendanceDto.TeacherAttendance> teacherAttendanceList = null;
+        if (teacher != null && teacher.getRoles().contains(TeacherRoles.DIRECTOR)) {
+            List<Teacher> teachers = teacherRepository.findAll()
+                    .stream()
+                    .filter(a -> !a.getRoles().contains(TeacherRoles.PASTOR))
+                    .filter(a -> !a.getRoles().contains(TeacherRoles.DIRECTOR))
+                    .toList();
+
+            Map<Long, TeacherAttendance> teacherAttendanceMap =
+                    teacherAttendanceRepository.findByTeacherIdInAndDate(
+                                    teachers.stream().map(Teacher::getId).toList(),
+                                    date
+                            )
+                            .stream()
+                            .collect(Collectors.toMap(
+                                    a -> a.getTeacher().getId(),
+                                    a -> a
+                            ));
+
+            teacherAttendanceList = teachers.stream()
+                    .map(t -> {
+                        TeacherAttendance ta = teacherAttendanceMap.get(t.getId());
+                        if (ta == null) {
+                            return AttendanceDto.TeacherAttendance.builder()
+                                    .id(t.getId())
+                                    .teacherName(t.getName())
+                                    .status(false)
+                                    .comments(null)
+                                    .build();
+                        } else {
+                            return AttendanceDto.TeacherAttendance.builder()
+                                    .id(t.getId())
+                                    .teacherName(t.getName())
+                                    .status(ta.getStatus())
+                                    .comments(ta.getComments())
+                                    .build();
+                        }
+                    })
+                    .sorted(Comparator.comparing(AttendanceDto.TeacherAttendance::teacherName))
+                    .toList();
+        }
+
         return AttendanceDto.Sheet.builder()
-                .studentChecks(studentCheckList)
-                .teacherCheck(teacherCheck)
+                .studentAttendances(studentAttendanceList)
+                .teacherReport(teacherReport)
+                .teacherAttendances(teacherAttendanceList)
                 .build();
     }
 
     @Transactional
     //LEE: save 작업이후 예외나 에러시 사용자는 어떻게 감지할 수 있나?
     public void saveSheet(LocalDate date, AttendanceDto.Sheet sheet) {
+        System.out.println(sheet);
         // administrative data인 경우는 studentChecks가 없음.
-        List<AttendanceDto.StudentCheck> studentChecks = sheet.studentChecks();
-        if (studentChecks != null) {
-            for (AttendanceDto.StudentCheck dto : studentChecks) {
-                Optional<StudentAttendance> existingData = studentAttendanceRepository.findByStudentIdAndDate(dto.id(), date);
+        List<AttendanceDto.StudentAttendance> studentAttendances = sheet.studentAttendances();
+        if (studentAttendances != null) {
+            for (AttendanceDto.StudentAttendance sa : studentAttendances) {
+                Optional<StudentAttendance> existingData = studentAttendanceRepository.findByStudentIdAndDate(sa.id(), date);
                 if (existingData.isEmpty()) {
                     // LEE: ref객체에 대해서.
-                    Student studentRef = studentRepository.getReferenceById(dto.id());
+                    Student studentRef = studentRepository.getReferenceById(sa.id());
                     studentAttendanceRepository.save(
                             StudentAttendance.builder()
                                     .student(studentRef)
                                     .date(date)
-                                    .comments(dto.comments())
-                                    .status(dto.status())
+                                    .comments(sa.comments())
+                                    .status(sa.status())
                                     .build()
                     );
                 } else {
                     existingData.get().update(
-                            dto.status(),
-                            dto.comments()
+                            sa.status(),
+                            sa.comments()
                     );
                 }
             }
         }
         // worshipTeam data인 경우는 teacherCheck가 없음.
-        AttendanceDto.TeacherCheck teacherCheck = sheet.teacherCheck();
-        if (teacherCheck != null) {
-            long teacherId = teacherCheck.id();
+        AttendanceDto.TeacherReport teacherReport = sheet.teacherReport();
+        if (teacherReport != null) {
+            long teacherId = teacherReport.id();
 
-            TeacherAttendance existingData = teacherAttendanceRepository.findByTeacherIdAndDate(teacherId, date);
+            TeacherReport existingData = teacherReportRepository.findByTeacherIdAndDate(teacherId, date);
             if (existingData == null) {
                 Teacher teacherRef = teacherRepository.getReferenceById(teacherId);
-                teacherAttendanceRepository.save(
-                        TeacherAttendance.builder()
+                teacherReportRepository.save(
+                        com.leenjae.domain.TeacherReport.builder()
                                 .teacher(teacherRef)
                                 .date(date)
-                                .worship(teacherCheck.worship())
-                                .otn(teacherCheck.otn())
-                                .dawnPray(teacherCheck.dawnPray())
-                                .comments(teacherCheck.comments())
+                                .worship(teacherReport.worship())
+                                .otn(teacherReport.otn())
+                                .dawnPray(teacherReport.dawnPray())
+                                .comments(teacherReport.comments())
                                 .build()
                 );
             } else {
                 existingData.update(
-                        teacherCheck.worship(),
-                        teacherCheck.otn(),
-                        teacherCheck.dawnPray(),
-                        teacherCheck.comments()
+                        teacherReport.worship(),
+                        teacherReport.otn(),
+                        teacherReport.dawnPray(),
+                        teacherReport.comments()
                 );
+            }
+        }
+
+        List<AttendanceDto.TeacherAttendance> teacherAttendances = sheet.teacherAttendances();
+        if (teacherAttendances != null) {
+            for (AttendanceDto.TeacherAttendance ta : teacherAttendances) {
+                Optional<TeacherAttendance> existingData = teacherAttendanceRepository.findByTeacherIdAndDate(ta.id(), date);
+                if (existingData.isEmpty()) {
+                    Teacher teacherRef = teacherRepository.getReferenceById(ta.id());
+                    teacherAttendanceRepository.save(
+                            TeacherAttendance.builder()
+                                    .teacher(teacherRef)
+                                    .date(date)
+                                    .status(ta.status())
+                                    .comments(ta.comments())
+                                    .build()
+                    );
+                } else {
+                    existingData.get().update(
+                            ta.status(),
+                            ta.comments()
+                    );
+                }
             }
         }
     }
@@ -204,7 +271,7 @@ public class AttendanceService {
     public List<StudentDto.Info> getNewFriends() {
         return studentRepository.findByStatus(Status.NEW.getCode())
                 .stream()
-                .map(s-> StudentDto.Info.builder()
+                .map(s -> StudentDto.Info.builder()
                         .id(s.getId())
                         .classroomId(s.getClassroom().getId())
                         .name(s.getName())
@@ -225,9 +292,15 @@ public class AttendanceService {
 
     @Transactional
     public Long registerStudent(StudentDto.Info info) {
+        Classroom classroom = null;
+        if (info.grade() != null && info.classNo() != null) {
+            classroom = classroomRepository.findByGradeAndClassNo(info.grade(), info.classNo())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 학년 반과 매칭되는 classroom 정보가 없습니다." + info.grade() + "/" + info.classNo()));
+        }
         Student newStudent = studentRepository.save(
                 Student.builder()
                         .name(info.name())
+                        .classroom(classroom)
                         .gender(info.gender())
                         .school(info.school())
                         .phone(info.phone())
@@ -246,9 +319,12 @@ public class AttendanceService {
     @Transactional
     public Long updateStudent(StudentDto.Info info) {
         Student existingData = studentRepository.findById(info.id())
-                .orElseThrow();
-        Classroom classroom = classroomRepository.findById(info.classroomId())
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 학생을 찾을 수 없습니다: " + info.id()));
+        Classroom classroom = null;
+        if (info.grade() != null && info.classNo() != null) {
+            classroom = classroomRepository.findByGradeAndClassNo(info.grade(), info.classNo())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 교실을 찾을 수 없습니다."));
+        }
         existingData.update(
                 info.gender(),
                 info.school(),

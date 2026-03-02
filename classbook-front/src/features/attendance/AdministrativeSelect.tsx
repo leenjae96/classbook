@@ -13,12 +13,11 @@ const AdministrativeSelect = () => {
 
     const loadAdministrativeList = () => {
         apiFetch('/api/attendances/administrative')
-            .then(res => res.json())
             .then((data: TeacherInfo[]) => {
                 setTeachers(data);
             })
             .catch(err => {
-                console.error("서버 연결 실패:", err);
+                console.error("서버 연결 실패/ ", err);
                 setErrorMessage(err.message || "알 수 없는 오류가 발생했습니다.");
                 setTeachers([]);
             });

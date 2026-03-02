@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
-import type {Sheet, StudentCheck, TeacherCheck} from "../constants/types.tsx";
+import type {Sheet, StudentAttendance, TeacherAttendance, TeacherReport} from "../constants/types.tsx";
 import {useNavigate} from "react-router-dom";
 
 // API 호출 함수가 prop으로 들어오거나, URL이 들어오도록 설계
@@ -13,9 +13,9 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
 
     const [selectedDate, setSelectedDate] = useState<string>(initialDate || new Date().toLocaleDateString('en-CA'));
     const [loading, setLoading] = useState(false);
-    const [studentChecks, setStudentChecks] = useState<StudentCheck[]>([]);
-    const [teacherCheck, setTeacherCheck] = useState<TeacherCheck>();
-
+    const [studentAttendances, setStudentAttendances] = useState<StudentAttendance[]>([]);
+    const [teacherReport, setTeacherReport] = useState<TeacherReport>();
+    const [teacherAttendances, setTeacherAttendances] = useState<TeacherAttendance[]>([]);
     // 1. 데이터 가져오기
     useEffect(() => {
         if (!apiEndpoint) return;
@@ -31,8 +31,9 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
                 return res.json();
             })
             .then((data: Sheet) => {
-                setStudentChecks(data.studentChecks || []);
-                setTeacherCheck(data.teacherCheck || undefined);
+                setStudentAttendances(data.studentAttendances || []);
+                setTeacherReport(data.teacherReport || undefined);
+                setTeacherAttendances(data.teacherAttendances || []);
             })
             .catch(err => {
                 console.error("Fetch error:", err);
@@ -41,46 +42,59 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
     }, [apiEndpoint, selectedDate]);
 
     // 2. 출석 상태 토글
-    const toggleStatus = useCallback((id: number) => {
-        setStudentChecks(prev => prev.map(s =>
+    const toggleStudentAttendance = useCallback((id: number) => {
+        setStudentAttendances(prev => prev.map(s =>
             s.id === id ? {...s, status: !s.status} : s
         ));
     }, []);
 
     // 3. 코멘트 수정
-    const updateComment = useCallback((id: number, comment: string) => {
-        setStudentChecks(prev => prev.map(s =>
+    const updateStudentAttendanceComment = useCallback((id: number, comment: string) => {
+        setStudentAttendances(prev => prev.map(s =>
             s.id === id ? {...s, comments: comment} : s
         ));
     }, []);
 
     const handleWorshipChange = (worship: number) => {
-        setTeacherCheck(prev => {
+        setTeacherReport(prev => {
             if (!prev) return prev;
             return {...prev, worship: worship}
         });
     }
 
     const handleOtnChange = (otn: number) => {
-        setTeacherCheck(prev => {
+        setTeacherReport(prev => {
             if (!prev) return prev;
             return {...prev, otn: otn === 1}
         })
     }
 
     const handleDawnPrayChange = (dawnPray: number) => {
-        setTeacherCheck(prev => {
+        setTeacherReport(prev => {
             if (!prev) return prev;
             return {...prev, dawnPray: dawnPray}
         })
     }
 
-    const handleTeacherCommentsChange = (comments: string) => {
-        setTeacherCheck(prev => {
+    const handleTeacherReportCommentChange = (comments: string) => {
+        setTeacherReport(prev => {
             if (!prev) return prev;
             return {...prev, comments: comments}
         })
     }
+
+    const toggleTeacherAttendance = useCallback((id: number) => {
+        setTeacherAttendances(prev => prev.map(s =>
+            s.id === id ? {...s, status: !s.status} : s
+        ));
+    }, []);
+
+    // 3. 코멘트 수정
+    const updateTeacherAttendanceComment = useCallback((id: number, comment: string) => {
+        setTeacherAttendances(prev => prev.map(s =>
+            s.id === id ? {...s, comments: comment} : s
+        ));
+    }, []);
 
     // 4. 제출 (서버로 POST)
     const submitAttendance = useCallback(async () => {
@@ -88,7 +102,7 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
             alert('일요일만 출석 제출이 가능해요.');
             return;
         }
-        if (teacherCheck?.worship === -1) {
+        if (teacherReport?.worship === -1) {
             alert('선생님 예배 여부를 선택해주세요.');
             return;
         }
@@ -99,11 +113,12 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    studentChecks: studentChecks,
-                    teacherCheck: {
-                        ...teacherCheck,
-                        dawnPray: teacherCheck?.dawnPray ?? 0
-                    }
+                    studentAttendances: studentAttendances,
+                    teacherReport: {
+                        ...teacherReport,
+                        dawnPray: teacherReport?.dawnPray ?? 0
+                    },
+                    teacherAttendances: teacherAttendances
                 }),
 
             });
@@ -115,20 +130,23 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
             alert('제출 실패');
             return false;
         }
-    }, [apiEndpoint, selectedDate, studentChecks, teacherCheck]);
+    }, [apiEndpoint, selectedDate, studentAttendances, teacherReport, teacherAttendances]);
 
     return {
         selectedDate,
         setSelectedDate,
-        studentChecks,
-        teacherCheck,
-        toggleStatus,
-        handleStudentCommentsChange: updateComment,
-        submitAttendance,
+        studentAttendances,
+        toggleStudentAttendance,
+        updateStudentAttendanceComment,
+        teacherReport,
         handleWorshipChange,
         handleOtnChange,
         handleDawnPrayChange,
-        handleTeacherCommentsChange,
+        handleTeacherReportCommentChange,
+        submitAttendance,
+        teacherAttendances,
+        toggleTeacherAttendance,
+        updateTeacherAttendanceComment,
         loading
     };
 };

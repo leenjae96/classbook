@@ -15,12 +15,11 @@ const ClassroomSelect = () => {
     const loadClassroomList = () => {
         // LEE: axios로 추후 변경
         apiFetch(`/api/attendances/classroom?grade=${grade}`)
-            .then(res => res.json())
-            .then(data => {
+            .then((data : ClassroomSummary[])  => {
                 setClassrooms(data);
             })
             .catch(err => {
-                console.log("서버 연결 실패(테스트모드): 데모" + err);
+                console.log("서버 연결 실패/ " + err);
                 setErrorMessage(err.message || "알 수 없는 오류가 발생했습니다.");
                 setClassrooms([]);
             });

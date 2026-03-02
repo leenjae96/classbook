@@ -16,6 +16,8 @@ import java.util.Set;
 @Getter
 @ToString
 @NoArgsConstructor
+@Table(name = "student")
+@Comment("학생 정보")
 public class Student {
     @Id
     //LEE: 여기서 쓰는 generationType 전략이랑 autoIncrement 와의 차이는?

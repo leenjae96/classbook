@@ -1,7 +1,7 @@
 import {useNavigate, useParams} from 'react-router-dom';
-import {TeacherRow} from "../../components/attendance/TeacherRow.tsx";
+import {TeacherReportRow} from "../../components/attendance/TeacherReportRow.tsx";
 import {useAttendance} from "../../hooks/useAttendance.ts";
-import {StudentRow} from "../../components/attendance/StudentRow.tsx";
+import {StudentAttendanceRow} from "../../components/attendance/StudentAttendanceRow.tsx";
 
 const ClassroomSheet = () => {
         // URL 파라미터 타입 지정 (className은 문자열)
@@ -12,15 +12,15 @@ const ClassroomSheet = () => {
         const {
             selectedDate,
             setSelectedDate,
-            studentChecks,
-            teacherCheck,
-            toggleStatus,
-            handleStudentCommentsChange,
-            submitAttendance,
+            studentAttendances,
+            toggleStudentAttendance,
+            updateStudentAttendanceComment,
+            teacherReport,
             handleWorshipChange,
             handleOtnChange,
             handleDawnPrayChange,
-            handleTeacherCommentsChange
+            handleTeacherReportCommentChange,
+            submitAttendance
         } = useAttendance({
             apiEndpoint: `/api/attendances/sheet?grade=${grade}&classNo=${classNo}` ,// 새친구 API 엔드포인트
             initialDate: new Date().toLocaleDateString('en-CA')
@@ -54,14 +54,14 @@ const ClassroomSheet = () => {
                     />
                 </div>
 
-                {/* 학생 리스트 (StudentRow 재사용) */}
+                {/* 학생 리스트 (StudentAttendanceRow 재사용) */}
                 <div className="student-list">
-                    {studentChecks.map((studentCheck) => (
-                        <StudentRow
+                    {studentAttendances.map((studentCheck) => (
+                        <StudentAttendanceRow
                             key={studentCheck.id}
                             studentCheck={studentCheck}
-                            onToggle={toggleStatus}
-                            onCommentChange={handleStudentCommentsChange}
+                            onToggle={toggleStudentAttendance}
+                            onCommentChange={updateStudentAttendanceComment}
                         />
                     ))}
                 </div>
@@ -69,13 +69,13 @@ const ClassroomSheet = () => {
                 <hr style={{margin: '20px 0'}}/>
 
                 {/* 선생님 출석 */}
-                {teacherCheck && (
-                    <TeacherRow
-                        teacher={teacherCheck}
+                {teacherReport && (
+                    <TeacherReportRow
+                        teacher={teacherReport}
                         onWorshipChange={handleWorshipChange}
                         onOtnChange={handleOtnChange}
                         onDawnPrayChange={handleDawnPrayChange}
-                        onCommentsChange={handleTeacherCommentsChange}
+                        onCommentsChange={handleTeacherReportCommentChange}
                     />
                 )}
 

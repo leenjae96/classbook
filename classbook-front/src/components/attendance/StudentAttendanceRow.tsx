@@ -1,16 +1,16 @@
 import { useRef, useState } from 'react';
-import type {StudentCheck} from '../../constants/types';
+import type {StudentAttendance} from '../../constants/types';
 import * as React from "react";
 
 interface Props {
-    studentCheck: StudentCheck;
+    studentCheck: StudentAttendance;
     onToggle: (id: number) => void;
     onCommentChange: (id: number, comment: string) => void;
     // 새친구 페이지 등을 위해 우측에 추가 버튼 등을 넣을 수 있게 함
-    renderRightAction?: (student: StudentCheck) => React.ReactNode;
+    renderRightAction?: (student: StudentAttendance) => React.ReactNode;
 }
 
-export const StudentRow = ({ studentCheck, onToggle, onCommentChange, renderRightAction }: Props) => {
+export const StudentAttendanceRow = ({ studentCheck, onToggle, onCommentChange, renderRightAction }: Props) => {
     const timerRef = useRef<number | null>(null);
     const isLongPress = useRef(false);
     const [showInfo, setShowInfo] = useState(false); // 로컬 팝업 상태

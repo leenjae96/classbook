@@ -1,6 +1,6 @@
 import {useState, useRef, useEffect} from 'react';
 import {useNavigate, useParams} from 'react-router-dom';
-import type {Sheet, StudentCheck} from "../../constants/types.tsx";
+import type {Sheet, StudentAttendance} from "../../constants/types.tsx";
 
 const WorshipTeamSheet = () => {
     // URL 파라미터 타입 지정 (className은 문자열)
@@ -10,7 +10,7 @@ const WorshipTeamSheet = () => {
 
     // 1. 날짜 선택
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString('en-CA'));
-    const [studentChecks, setStudentChecks] = useState<StudentCheck[]>([]);
+    const [studentChecks, setStudentChecks] = useState<StudentAttendance[]>([]);
 
     const [popupInfo, setPopupInfo] = useState<string | null>(null);
     const timerRef = useRef<number | null>(null);
@@ -23,7 +23,7 @@ const WorshipTeamSheet = () => {
                 return res.json();
             })
             .then((data: Sheet) => {
-                setStudentChecks(data.studentChecks);
+                setStudentChecks(data.studentAttendances);
             })
             .catch(error => {
                 console.log(error);
@@ -31,7 +31,7 @@ const WorshipTeamSheet = () => {
     }, [selectedDate, teamName]);
 
     // 1. 누르기 시작 (마우스/터치 통합)
-    const handlePointerDown = (studentCheck: StudentCheck) => {
+    const handlePointerDown = (studentCheck: StudentAttendance) => {
         console.log(studentCheck);
 
         isLongPress.current = false;

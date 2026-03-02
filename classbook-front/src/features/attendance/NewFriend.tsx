@@ -1,26 +1,31 @@
 import { useNavigate } from "react-router-dom";
 import { useAttendance } from "../../hooks/useAttendance.ts"; // Hook 사용
-import { StudentRow } from "../../components/attendance/StudentRow.tsx"; // Component 사용
+import { StudentAttendanceRow } from "../../components/attendance/StudentAttendanceRow.tsx"; // Component 사용
 import { useState } from "react";
-import type {StudentCheck, StudentInfo} from "../../constants/types.tsx";
+import type {StudentAttendance, StudentInfo} from "../../constants/types.tsx";
 import {StudentInfoModal} from "../../components/attendance/StudentInfoModal.tsx";
 import {apiFetch} from "../../hooks/api.ts";
 
 const NewFriend = () => {
     const navigate = useNavigate();
 
-    // 1. Hook을 사용해 로직을 전부 가져옴 (코드 량 대폭 감소)
     const {
-        selectedDate, setSelectedDate, studentChecks, toggleStatus, handleStudentCommentsChange, submitAttendance
+        selectedDate,
+        setSelectedDate,
+        studentAttendances,
+        toggleStudentAttendance,
+        updateStudentAttendanceComment,
+        submitAttendance
     } = useAttendance({
-        apiEndpoint: '/api/attendances/new-friend/sheet' // 새친구 API 엔드포인트
+        apiEndpoint: '/api/attendances/new-friend/sheet' ,
+        initialDate: new Date().toLocaleDateString('en-CA')
     });
 
     // 모달 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [targetStudent, setTargetStudent] = useState<StudentInfo | null>(null); // 수정할 학생 객체
 
-    const handleEditClick = async (student: StudentCheck) => {
+    const handleEditClick = async (student: StudentAttendance) => {
         try {
             // 1. 서버에 해당 학생(id)의 전체 인적사항(StudentInfo)을 요청합니다.
             const studentDetail = await apiFetch(`/api/attendances/student?id=${student.id}`);
@@ -66,14 +71,14 @@ const NewFriend = () => {
             </div>
             <>개발중인 페이지입니다.</>
 
-            {/* 학생 리스트 (StudentRow 재사용) */}
+            {/* 학생 리스트 (StudentAttendanceRow 재사용) */}
             <div className="student-list">
-                {studentChecks.map((studentCheck) => (
-                    <StudentRow
+                {studentAttendances.map((studentCheck) => (
+                    <StudentAttendanceRow
                         key={studentCheck.id}
                         studentCheck={studentCheck}
-                        onToggle={toggleStatus}
-                        onCommentChange={handleStudentCommentsChange}
+                        onToggle={toggleStudentAttendance}
+                        onCommentChange={updateStudentAttendanceComment}
                         // ★ 새친구 페이지 전용: 우측에 수정 버튼(⚙️) 배치
                         renderRightAction={(s) => (
                             <button
@@ -101,10 +106,29 @@ const NewFriend = () => {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 student={targetStudent}
-                onSave={(data) => {
-                    console.log("저장할 데이터:", data);
-                    // TODO: 서버로 데이터 전송하는 로직 추가 예정
-                    setIsModalOpen(false);
+                onSave={async (data) => {
+                    try {
+                        // id가 있으면 기존 학생 수정(PUT), 없으면 새친구 추가(POST)
+                        const isEdit = !!data.id;
+                        const method = isEdit ? 'PUT' : 'POST';
+                        // 백엔드 API 설계에 따라 경로는 맞춰주세요.
+                        const url = isEdit ? `/api/attendances/student/${data.id}` : '/api/attendances/student';
+
+                        await apiFetch(url, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(data),
+                        });
+                        alert(isEdit ? '정보가 수정되었습니다.' : '새친구가 등록되었습니다.');
+                        setIsModalOpen(false);
+                        // 저장 후 목록을 갱신하기 위해 페이지 새로고침 (또는 fetch 함수 재호출)
+                        window.location.reload();
+                    } catch (error) {
+                        console.error("학생 정보 저장 실패:", error);
+                        alert("저장에 실패했습니다. 다시 시도해주세요.");
+                    }
                 }}
             />
         </div>

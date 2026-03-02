@@ -1,6 +1,7 @@
 const ATTENDANCE_BASE = 'attendance';
 const NOTICE_BASE = 'notice';
 const STATISTICS_BASE = 'statistics';
+const ADMINISTRATOR_BASE = 'administrator';
 
 export const paths = {
     root: '/',
@@ -48,5 +49,10 @@ export const paths = {
     statistics: {
         url: STATISTICS_BASE,
         api: ``
-    }, // "statistics"
+    },
+
+    administrator: {
+        url: ADMINISTRATOR_BASE,
+        api: ``
+    }
 } as const;

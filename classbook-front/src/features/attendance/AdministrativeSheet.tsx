@@ -1,6 +1,7 @@
 import {useNavigate, useParams} from "react-router-dom";
 import {useAttendance} from "../../hooks/useAttendance.ts";
-import {TeacherRow} from "../../components/attendance/TeacherRow.tsx";
+import {TeacherReportRow} from "../../components/attendance/TeacherReportRow.tsx";
+import {TeacherAttendanceRow} from "../../components/attendance/TeacherAttendanceRow.tsx";
 
 const AdministrativeSheet = () => {
     // URL 파라미터 타입 지정 (className은 문자열)
@@ -11,14 +12,17 @@ const AdministrativeSheet = () => {
     const {
         selectedDate,
         setSelectedDate,
-        teacherCheck,
+        teacherReport,
         submitAttendance,
         handleWorshipChange,
         handleOtnChange,
         handleDawnPrayChange,
-        handleTeacherCommentsChange
+        handleTeacherReportCommentChange,
+        teacherAttendances,
+        toggleTeacherAttendance,
+        updateTeacherAttendanceComment
     } = useAttendance({
-        apiEndpoint: `/api/attendances/sheet?teacherId=${teacherId}` ,// 새친구 API 엔드포인트
+        apiEndpoint: `/api/attendances/sheet?teacherId=${teacherId}`,
         initialDate: new Date().toLocaleDateString('en-CA')
     });
 
@@ -46,17 +50,31 @@ const AdministrativeSheet = () => {
                 />
             </div>
 
+            {teacherId == '2' ? (
+                <div className="teacher-list">
+                    {teacherAttendances.map((teacherAttendance) => (
+                        <TeacherAttendanceRow
+                            key={teacherAttendance.id}
+                            teacherAttendance={teacherAttendance}
+                            onToggle={toggleTeacherAttendance}
+                            onCommentChange={updateTeacherAttendanceComment}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <></>
+            )}
 
             <hr style={{margin: '20px 0'}}/>
 
             {/* 선생님 출석 */}
-            {teacherCheck && (
-                <TeacherRow
-                    teacher={teacherCheck}
+            {teacherReport && (
+                <TeacherReportRow
+                    teacher={teacherReport}
                     onWorshipChange={handleWorshipChange}
                     onOtnChange={handleOtnChange}
                     onDawnPrayChange={handleDawnPrayChange}
-                    onCommentsChange={handleTeacherCommentsChange}
+                    onCommentsChange={handleTeacherReportCommentChange}
                 />
             )}
 

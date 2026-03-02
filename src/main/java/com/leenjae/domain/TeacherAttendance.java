@@ -12,7 +12,12 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "teacher_attendance")
+@Table(name = "teacher_attendance", uniqueConstraints = {
+        @UniqueConstraint(
+                columnNames = {"teacher_id", "date"}
+        )
+})
+@Comment("교사 출석 정보")
 public class TeacherAttendance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +25,6 @@ public class TeacherAttendance {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @Comment("선생님 식별자")
     @JoinColumn(name = "teacher_id", nullable = false)
     private Teacher teacher;
 
@@ -28,44 +32,24 @@ public class TeacherAttendance {
     @Comment("날짜")
     private LocalDate date;
 
-    @Column(nullable = false, length = 3)
-    @Comment("출석 예배 (1~6: 부 예배 0: 미참석)")
-    private Integer worship;
-
     @Column(nullable = false)
-    @Comment("otn 출석 여부")
-    private Boolean otn;
-
-    @Column(nullable = false, length = 3)
-    @Comment("새벽기도 출석 횟수")
-    private Integer dawnPray;
+    @Comment("출결상태")
+    private Boolean status;
 
     @Column
-    @Comment("심방 기도제목 건의사항 코멘트")
+    @Comment("출결 사유 코멘트")
     private String comments;
 
     @Builder
-    public TeacherAttendance(
-            Teacher teacher,
-            LocalDate date,
-            Integer worship,
-            Boolean otn,
-            Integer dawnPray,
-            String comments
-    ) {
+    public TeacherAttendance(Teacher teacher, LocalDate date, Boolean status, String comments) {
         this.teacher = teacher;
         this.date = date;
-        this.worship = worship;
-        this.otn = otn;
-        this.dawnPray = dawnPray;
+        this.status = status;
         this.comments = comments;
     }
 
-    public void update(Integer newWorship, Boolean newOtn, Integer newDawnPray, String newComments) {
-        this.worship = newWorship;
-        this.otn = newOtn;
-        this.dawnPray = newDawnPray;
+    public void update(Boolean newStatus, String newComments) {
+        this.status = newStatus;
         this.comments = newComments;
     }
-
 }
