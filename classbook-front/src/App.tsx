@@ -11,7 +11,9 @@ import WorshipTeamSheet from "./features/attendance/WorshipTeamSheet.tsx";
 import NoticePage from "./features/notice/NoticePage.tsx";
 import StatisticsPage from "./features/statistics/StatisticsPage.tsx";
 import './App.css';
+import Layout from "./components/layout/Layout.tsx";
 import AdminCategorySelect from "./features/administrator/AdminCategorySelect.tsx";
+
 
 const Home = () => {
     const navigate = useNavigate();
@@ -29,9 +31,9 @@ const Home = () => {
 
 function App() {
     return (
-        <div className="mobile-container">
-            <BrowserRouter>
-                <Routes>
+        <BrowserRouter>
+            <Routes>
+                <Route element={<Layout />}>
                     <Route path={paths.root} element={<Home/>}/>
 
                     <Route path={paths.attendanceCategorySelect.url} element={<CategorySelect/>}/>
@@ -44,13 +46,11 @@ function App() {
                     <Route path={paths.worshipTeamSheet.url} element={<WorshipTeamSheet/>}/>
 
                     <Route path={paths.noticeCategorySelect.url} element={<NoticePage/>}/>
-
                     <Route path={paths.statistics.url} element={<StatisticsPage/>}/>
-
                     <Route path={paths.administrator.url} element={<AdminCategorySelect/>}/>
-                </Routes>
-            </BrowserRouter>
-        </div>
+                </Route>
+            </Routes>
+        </BrowserRouter>
     );
 }
 

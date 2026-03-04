@@ -1,74 +1,137 @@
-#root {
+/* --- App.css 하단에 추가 또는 덮어쓰기 --- */
+
+/* 전체 레이아웃 뼈대 */
+.layout-container {
     display: flex;
     width: 100vw;
     height: 100vh;
-    justify-content: center;
-    align-items: center;
-    background-color: #f0f0f0;
-    color: #000000;
-    margin: 0;
+    overflow: hidden;
+    position: relative; /* 자식인 sidebar가 absolute로 위치를 잡을 수 있게 함 */
 }
 
-.mobile-container {
-    width: 100%;
-    height: 90%;
-    max-width: 700px;
-    max-height: 1000px;
-    background-color: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    overflow-y: auto;
-    position: relative;
+/* 1. 대시보드를 밀어내는 투명 뼈대 (공간만 차지함) */
+.sidebar-spacer {
+    transition: width 0.3s ease;
+    flex-shrink: 0; /* 화면이 작아져도 뼈대 크기 유지 */
+    display: block;
+}
+.sidebar-spacer.pinned { width: 250px; }
+.sidebar-spacer.unpinned { width: 60px; }
+
+/* 2. 실제 눈에 보이는 사이드바 */
+.sidebar {
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    background-color: #1a1b23; /* 사진과 비슷한 다크톤 */
+    color: white;
+    z-index: 1000;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
+    transition: width 0.3s ease, transform 0.3s ease;
+    box-shadow: 2px 0 8px rgba(0,0,0,0.15); /* 살짝 그림자를 줘서 덮이는 느낌 강조 */
 }
 
-.content {
-    padding: 2%;
-    flex: 1;
+/* 데스크탑: 핀 고정 시 250px, 해제 시 60px */
+.sidebar.pinned { width: 250px; }
+.sidebar.unpinned { width: 60px; }
+
+/* ✨ 핵심 로직: 핀이 해제되어 있을 때 마우스를 올리면 250px로 튀어나옴 (우측 화면은 안 밀림!) ✨ */
+.sidebar.hover-expanded { width: 250px; }
+
+/* 사이드바 내부 디테일 */
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    background-color: #15161d;
+    height: 60px;
+    box-sizing: border-box;
+    white-space: nowrap; /* 텍스트 줄바꿈 방지 */
 }
 
-.go-back-btn {
-    background: #eaeaea;
-    color: #000000;
+.logo-text { margin: 0; font-size: 18px; transition: opacity 0.2s; }
+
+/* 핀이 해제되어 있고 마우스도 안 올린(60px) 상태일 때는 글자 숨김 */
+.sidebar.unpinned:not(.hover-expanded) .logo-text,
+.sidebar.unpinned:not(.hover-expanded) .menu-text {
+    opacity: 0;
+    pointer-events: none; /* 숨겨진 텍스트가 클릭을 방해하지 않게 */
 }
 
-.menu-btn {
-    display: block;
-    width: 100%;
-    padding: 15px;
-    margin-bottom: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
+/* 토글 버튼 */
+.toggle-btn {
+    background: none; border: none; color: white;
+    font-size: 20px; cursor: pointer; padding: 5px;
+    min-width: 30px; /* 버튼이 찌그러지지 않게 방어 */
 }
 
-.menu-btn:hover {
-    background-color: #0056b3;
+/* 내비게이션 버튼들 */
+.sidebar-nav button {
+    display: flex;
+    align-items: center;
+    background: none; border: none; color: #a2a3b7;
+    width: 100%; text-align: left;
+    padding: 15px; cursor: pointer;
+    font-size: 16px; transition: background 0.2s, color 0.2s;
+    white-space: nowrap; /* 버튼 좁아질 때 글씨 안 깨지게 */
 }
 
-.half-btn-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 2%; /* 버튼 사이 간격 */
-    width: 100%;
+.sidebar-nav button:hover {
+    color: white; background-color: #232430;
 }
 
-.menu-btn-half {
-    display: block;
-    width: 50%;
-    padding: 15px;
-    margin-bottom: 10px; /* 아래 여백 */
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
+.icon {
+    font-size: 20px;
+    min-width: 30px; /* 아이콘 영역을 고정해서 60px일 때 아이콘만 예쁘게 남게 함 */
+    text-align: center; margin-right: 10px;
 }
 
-.menu-btn-half:hover {
-    background-color: #0056b3;
+.menu-text { transition: opacity 0.2s; }
+
+/* 3. 모바일 환경 오버레이 배경 (메뉴 열렸을 때 뒤에 깔리는 검은 반투명 막) */
+.mobile-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0,0,0,0.5); z-index: 999;
+}
+
+/* 4. 우측 메인 컨텐츠 영역 */
+.main-content {
+    flex: 1; display: flex; flex-direction: column;
+    overflow-y: auto; background-color: #f4f5f7;
+}
+
+.mobile-header {
+    display: none; background-color: #1a1b23; color: white;
+    padding: 0 15px; height: 60px; align-items: center;
+}
+.mobile-header h2 { margin-left: 10px; font-size: 18px; }
+
+.page-content { padding: 20px; flex: 1; width: 100%; box-sizing: border-box; }
+
+/* --- 📱 반응형 분기점 (600px 이하) --- */
+@media (max-width: 600px) {
+    .sidebar-spacer {
+        display: none; /* 모바일에서는 화면을 밀어낼 필요가 없음 */
+    }
+
+    .sidebar {
+        transform: translateX(-100%); /* 기본적으로 화면 왼쪽 밖으로 숨김 */
+        width: 250px; /* 열리면 무조건 250px */
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0); /* 토글되면 스르륵 나타남 */
+    }
+
+    /* 모바일에서는 호버 기능이나 핀 고정 기능 초기화 */
+    .sidebar.unpinned:hover { width: 250px; }
+    .sidebar.unpinned:not(:hover) .logo-text,
+    .sidebar.unpinned:not(:hover) .menu-text {
+        opacity: 1; pointer-events: auto; /* 모바일에선 글씨 항상 보임 */
+    }
+
+    .mobile-header { display: flex; }
+    .page-content { padding: 10px; }
 }
