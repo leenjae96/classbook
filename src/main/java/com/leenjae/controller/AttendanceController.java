@@ -78,15 +78,11 @@ public class AttendanceController {
         return attendanceService.getSheetOfNewFriend(date);
     }
 
-    /*@GetMapping("/new-friend")
-    public List<StudentDto.Info> getNewFriendList() {
-        return attendanceService.getNewFriends();
-    }*/
-
     @PostMapping("/new-friend")
     public ResponseEntity<Void> registerNewFriend(
             @RequestBody StudentDto.Info info
     ) {
+        attendanceService.registerStudent(info);
         return ResponseEntity.ok().build();
     }
 
@@ -94,9 +90,9 @@ public class AttendanceController {
     public ResponseEntity<Void> promoteNewFriend(
             @RequestBody StudentDto.Info info
     ) {
+        attendanceService.updateStudent(info);
         return ResponseEntity.ok().build();
     }
-
 
     @GetMapping("/student")
     public StudentDto.Info setStudent(
@@ -110,6 +106,7 @@ public class AttendanceController {
     public ResponseEntity<Void> registerStudent(
             @RequestBody StudentDto.Info info
     ) {
+        attendanceService.registerStudent(info);
         return ResponseEntity.ok().build();
     }
 
@@ -117,6 +114,7 @@ public class AttendanceController {
     public ResponseEntity<Void> updateStudent(
             @RequestBody StudentDto.Info info
     ) {
+        attendanceService.updateStudent(info);
         return ResponseEntity.ok().build();
     }
     @DeleteMapping("/student")

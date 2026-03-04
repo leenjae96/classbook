@@ -291,13 +291,14 @@ public class AttendanceService {
     }
 
     @Transactional
-    public Long registerStudent(StudentDto.Info info) {
+    public void registerStudent(StudentDto.Info info) {
+        log.info(info.toString());
         Classroom classroom = null;
-        if (info.grade() != null && info.classNo() != null) {
-            classroom = classroomRepository.findByGradeAndClassNo(info.grade(), info.classNo())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 학년 반과 매칭되는 classroom 정보가 없습니다." + info.grade() + "/" + info.classNo()));
+        if (info.classroomId() != null) {
+            classroom = classroomRepository.findById(info.classroomId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 classroomId과 매칭되는 classroom 정보가 없습니다. :/ " + info.classroomId()));
         }
-        Student newStudent = studentRepository.save(
+        studentRepository.save(
                 Student.builder()
                         .name(info.name())
                         .classroom(classroom)
@@ -313,17 +314,17 @@ public class AttendanceService {
                         .remark(info.remark())
                         .build()
         );
-        return newStudent.getId();
     }
 
     @Transactional
-    public Long updateStudent(StudentDto.Info info) {
+    public void updateStudent(StudentDto.Info info) {
+        log.info(info.toString());
         Student existingData = studentRepository.findById(info.id())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 학생을 찾을 수 없습니다: " + info.id()));
         Classroom classroom = null;
-        if (info.grade() != null && info.classNo() != null) {
-            classroom = classroomRepository.findByGradeAndClassNo(info.grade(), info.classNo())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 교실을 찾을 수 없습니다."));
+        if (info.classroomId() != null) {
+            classroom = classroomRepository.findById(info.classroomId())
+                    .orElseThrow(() -> new IllegalArgumentException("해당 classroomId과 매칭되는 classroom 정보가 없습니다. :/ " + info.classroomId()));
         }
         existingData.update(
                 info.gender(),
@@ -338,7 +339,6 @@ public class AttendanceService {
                 info.remark(),
                 classroom
         );
-        return existingData.getId();
     }
 
     @Transactional
@@ -351,7 +351,10 @@ public class AttendanceService {
                 .orElseThrow();
         Classroom classroom = student.getClassroom();
         return StudentDto.Info.builder()
-                .classroomId(classroom.getId())
+                .id(student.getId())
+                .classroomId(classroom == null ? null : classroom.getId())
+                .grade(classroom == null ? null : classroom.getGrade())
+                .classNo(classroom == null ? null : classroom.getClassNo())
                 .name(student.getName())
                 .gender(student.getGender())
                 .school(student.getSchool())

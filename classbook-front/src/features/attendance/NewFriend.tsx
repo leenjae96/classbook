@@ -1,7 +1,7 @@
-import { useNavigate } from "react-router-dom";
-import { useAttendance } from "../../hooks/useAttendance.ts"; // Hook 사용
-import { StudentAttendanceRow } from "../../components/attendance/StudentAttendanceRow.tsx"; // Component 사용
-import { useState } from "react";
+import {useNavigate} from "react-router-dom";
+import {useAttendance} from "../../hooks/useAttendance.ts"; // Hook 사용
+import {StudentAttendanceRow} from "../../components/attendance/StudentAttendanceRow.tsx"; // Component 사용
+import {useState} from "react";
 import type {StudentAttendance, StudentInfo} from "../../constants/types.tsx";
 import {StudentInfoModal} from "../../components/attendance/StudentInfoModal.tsx";
 import {apiFetch} from "../../hooks/api.ts";
@@ -17,7 +17,7 @@ const NewFriend = () => {
         updateStudentAttendanceComment,
         submitAttendance
     } = useAttendance({
-        apiEndpoint: '/api/attendances/new-friend/sheet' ,
+        apiEndpoint: '/api/attendances/new-friend/sheet',
         initialDate: new Date().toLocaleDateString('en-CA')
     });
 
@@ -53,25 +53,36 @@ const NewFriend = () => {
                 <h3>새친구 관리</h3>
                 <button
                     onClick={handleAddClick}
-                    style={{ padding: '5px 10px', background: '#007bff', color: 'white', border: 'none', borderRadius: '4px'}}
+                    style={{
+                        padding: '5px 10px',
+                        background: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px'
+                    }}
                 >
                     + 추가
                 </button>
             </div>
 
             {/* 날짜 선택기 */}
-            <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #ddd' }}>
-                <label style={{ marginRight: '10px', fontWeight: 'bold' }}>날짜:</label>
+            <div style={{
+                marginBottom: '20px',
+                padding: '10px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '8px',
+                border: '1px solid #ddd'
+            }}>
+                <label style={{marginRight: '10px', fontWeight: 'bold'}}>날짜:</label>
                 <input
                     type="date"
                     value={selectedDate}
                     onChange={(e) => setSelectedDate(e.target.value)}
-                    style={{ padding: '5px', borderRadius: '4px', border: '1px solid #ccc' }}
+                    style={{padding: '5px', borderRadius: '4px', border: '1px solid #ccc'}}
                 />
             </div>
             <>개발중인 페이지입니다.</>
 
-            {/* 학생 리스트 (StudentAttendanceRow 재사용) */}
             <div className="student-list">
                 {studentAttendances.map((studentCheck) => (
                     <StudentAttendanceRow
@@ -95,9 +106,9 @@ const NewFriend = () => {
                 ))}
             </div>
 
-            <hr style={{ margin: '20px 0' }} />
+            <hr style={{margin: '20px 0'}}/>
 
-            <button className="menu-btn" onClick={submitAttendance} style={{ backgroundColor: '#28a745' }}>
+            <button className="menu-btn" onClick={submitAttendance} style={{backgroundColor: '#28a745'}}>
                 출석 제출하기
             </button>
 
@@ -105,26 +116,24 @@ const NewFriend = () => {
             <StudentInfoModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                student={targetStudent}
+
+                studentInfo={targetStudent}
                 onSave={async (data) => {
                     try {
                         // id가 있으면 기존 학생 수정(PUT), 없으면 새친구 추가(POST)
                         const isEdit = !!data.id;
                         const method = isEdit ? 'PUT' : 'POST';
                         // 백엔드 API 설계에 따라 경로는 맞춰주세요.
-                        const url = isEdit ? `/api/attendances/student/${data.id}` : '/api/attendances/student';
-
-                        await apiFetch(url, {
+                        const url = '/api/attendances/new-friend';
+//
+                        await fetch(url, { // 엔드포인트는 상황에 맞게 조정 필요
                             method: method,
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
+                            headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify(data),
                         });
                         alert(isEdit ? '정보가 수정되었습니다.' : '새친구가 등록되었습니다.');
                         setIsModalOpen(false);
                         // 저장 후 목록을 갱신하기 위해 페이지 새로고침 (또는 fetch 함수 재호출)
-                        window.location.reload();
                     } catch (error) {
                         console.error("학생 정보 저장 실패:", error);
                         alert("저장에 실패했습니다. 다시 시도해주세요.");

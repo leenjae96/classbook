@@ -4,11 +4,11 @@ export const apiFetch = async (url: string, options?: RequestInit) => {
     if (!res.ok) {
         throw new Error(`서버 응답 오류 (상태 코드: ${res.status})`);
     }
-    // 2. 서버가 꺼져서 HTML이 넘어오는 경우 방어
+    // 2. 응답 내용물(JSON 등) 유연하게 처리
     const contentType = res.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("서버가 꺼져있거나 올바른 응답(JSON)이 아닙니다.");
+    if (contentType && contentType.includes("application/json")) {
+        return res.json(); // 응답이 JSON이면 파싱해서 반환
+    } else {
+        return res.text(); // 빈 응답이거나 단순 텍스트면 그냥 반환 (여기서 에러 안 나게 처리)
     }
-    // 3. 정상적이면 파싱된 데이터 반환
-    return res.json();
 };

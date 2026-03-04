@@ -11,6 +11,7 @@ import WorshipTeamSheet from "./features/attendance/WorshipTeamSheet.tsx";
 import NoticePage from "./features/notice/NoticePage.tsx";
 import StatisticsPage from "./features/statistics/StatisticsPage.tsx";
 import './App.css';
+import AdminCategorySelect from "./features/administrator/AdminCategorySelect.tsx";
 
 const Home = () => {
     const navigate = useNavigate();
@@ -20,6 +21,8 @@ const Home = () => {
             <button className="menu-btn" onPointerUp={() => navigate(paths.attendanceCategorySelect.url)}>출석 교사보고서</button>
             <button className="menu-btn" onPointerUp={() => navigate(paths.noticeCategorySelect.url)}>공지</button>
             <button className="menu-btn" onPointerUp={() => navigate(paths.statistics.url)}>출석 통계</button>
+            <hr style={{margin: '10px 0 20px 0'}}/>
+            <button className="menu-btn" onPointerUp={() => navigate(paths.administrator.url)}>관리자</button>
         </div>
     );
 };
@@ -43,6 +46,8 @@ function App() {
                     <Route path={paths.noticeCategorySelect.url} element={<NoticePage/>}/>
 
                     <Route path={paths.statistics.url} element={<StatisticsPage/>}/>
+
+                    <Route path={paths.administrator.url} element={<AdminCategorySelect/>}/>
                 </Routes>
             </BrowserRouter>
         </div>
