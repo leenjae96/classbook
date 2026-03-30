@@ -1,4 +1,4 @@
-import {BrowserRouter, Route, Routes, useNavigate} from "react-router-dom";
+import {BrowserRouter, Route, Routes} from "react-router-dom";
 import {paths} from "./constants/paths.tsx";
 import CategorySelect from "./features/attendance/CategorySelect.tsx";
 import ClassroomSelect from "./features/attendance/ClassroomSelect.tsx";
@@ -13,21 +13,8 @@ import StatisticsPage from "./features/statistics/StatisticsPage.tsx";
 import './App.css';
 import Layout from "./components/layout/Layout.tsx";
 import AdminCategorySelect from "./features/administrator/AdminCategorySelect.tsx";
+import Home from "./features/Home.tsx";
 
-
-const Home = () => {
-    const navigate = useNavigate();
-    return (
-        <div className="content">
-            <h2>메인 메뉴</h2>
-            <button className="menu-btn" onPointerUp={() => navigate(paths.attendanceCategorySelect.url)}>출석 교사보고서</button>
-            <button className="menu-btn" onPointerUp={() => navigate(paths.noticeCategorySelect.url)}>공지</button>
-            <button className="menu-btn" onPointerUp={() => navigate(paths.statistics.url)}>출석 통계</button>
-            <hr style={{margin: '10px 0 20px 0'}}/>
-            <button className="menu-btn" onPointerUp={() => navigate(paths.administrator.url)}>관리자</button>
-        </div>
-    );
-};
 
 function App() {
     return (

@@ -1,0 +1,122 @@
+/* StatisticsPage.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.loading {
+    text-align: center;
+    padding: 50px 0;
+    color: #888;
+}
+
+/* 학년 전체 소계 Row */
+.gradeTotalRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #e3f2fd;
+    padding: 14px 20px;
+    border-radius: 10px;
+    border: 1px solid #bbdefb;
+}
+
+.gradeTitle {
+    font-weight: 700;
+    font-size: 16px;
+    color: #1565c0;
+}
+
+.gradeStats {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1565c0;
+}
+
+/* 반별 디테일 Row */
+.classRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 8px 20px;
+    margin-left: 15px;
+    border-radius: 8px;
+}
+
+.classRowMissing {
+    background-color: #ffebee; /* 미제출 배경색 */
+}
+
+.className {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+.classNameMissing {
+    color: #d32f2f;
+}
+
+.classStats {
+    font-size: 14px;
+    color: #555;
+}
+
+.classStatsMissing {
+    color: #d32f2f;
+}
+
+/* 퍼센트 텍스트 */
+.percent {
+    margin-left: 10px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.percentAccent {
+    color: #4dd0e1;
+    margin-left: 8px;
+    font-weight: 600;
+}
+
+/* 새친구 통계 텍스트 */
+.newFriendText {
+    color: #ff9800; /* 주황색으로 새친구 강조 */
+    font-size: 0.9em;
+    margin-right: 6px;
+    font-weight: 600;
+}
+
+/* 중등부 전체 Row */
+.overallRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #eff6ff;
+    padding: 16px 20px;
+    border-radius: 15px;
+    margin-top: 10px;
+    border: 2px solid #bfdbfe;
+}
+
+.overallTitle {
+    font-weight: 800;
+    font-size: 16px;
+    color: #1e3a8a;
+}
+
+.overallStats {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e3a8a;
+}
+
+.overallPercent {
+    color: #2563eb;
+    margin-left: 12px;
+    font-size: 16px;
+    font-weight: 800;
+}

@@ -49,15 +49,18 @@ export const StudentAttendanceRow = ({ studentCheck, onToggle, onCommentChange, 
     };
 
     return (
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', position: 'relative' }}>
+        <div style={{ width: '100%', display: 'flex', alignItems: 'center', marginBottom: '10px', position: 'relative' }}>
             {/* 학생 버튼 */}
             <button
                 onPointerDown={handlePointerDown}
                 onPointerUp={handlePointerUp}
                 style={{
-                    flex: 1,
+                    flexBasis: '30%',
+                    minWidth: '90px',
+                    maxWidth: '180px',
+                    flexShrink: 0, // 90px 이하로 찌그러짐 방지
                     padding: '15px',
-                    fontSize: '13px',
+                    fontSize: '14px',
                     backgroundColor: studentCheck.status ? '#4caf50' : '#e0e0e0',
                     color: studentCheck.status ? 'white' : 'black',
                     border: 'none',
@@ -67,8 +70,7 @@ export const StudentAttendanceRow = ({ studentCheck, onToggle, onCommentChange, 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
                     touchAction: 'manipulation',
-                    transition: 'background-color 0.3s',
-                    minWidth: '90px'
+                    transition: 'background-color 0.3s'
                 }}
                 onPointerLeave={handlePointerLeave}
             >
@@ -81,7 +83,7 @@ export const StudentAttendanceRow = ({ studentCheck, onToggle, onCommentChange, 
                 placeholder="결석 사유 및 심방 내용"
                 value={studentCheck.comments || ''}
                 onChange={(e) => onCommentChange(studentCheck.id, e.target.value)}
-                style={{ width: '50%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginRight: '5px' }}
+                style={{flexGrow: '1', width: '0', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginRight: '5px' }}
             />
 
             {/* 우측 추가 액션 (새친구 수정 버튼 등) */}

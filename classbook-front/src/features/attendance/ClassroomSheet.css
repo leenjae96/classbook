@@ -1,0 +1,51 @@
+.summary-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* 새친구 전용 요약 박스는 배경색을 살짝 다르게 주어 구분감을 줍니다 */
+.summary-box.new-friend {
+    background-color: #fff8e1; /* 연한 노란색/주황색 계열 */
+    border: 1px solid #ffe082;
+}
+
+.summary-left {
+    font-size: 16px;
+    font-weight: bold;
+    color: #343a40;
+}
+
+.summary-right {
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.present-count {
+    font-weight: bold;
+    color: #4caf50;
+    font-size: 15px;
+}
+
+.new-present-count {
+    font-weight: bold;
+    color: #ff9800; /* 새친구 출석 강조 색상 */
+    font-size: 15px;
+}
+
+.separator {
+    margin: 0 5px;
+    color: #ced4da;
+}
+
+.section-divider {
+    border: 0;
+    border-top: 1px solid #e9ecef;
+    margin: 20px 0;
+}

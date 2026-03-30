@@ -1,5 +1,6 @@
 import {generatePath, useNavigate} from "react-router-dom";
 import {paths} from "../../constants/paths.tsx";
+import BackButton from "../../components/common/BackButton.tsx";
 
 const CategorySelect = () => {
     const navigate = useNavigate();
@@ -7,31 +8,42 @@ const CategorySelect = () => {
 
     return (
         <div className="content">
-            <button className="go-back-btn" onClick={() => navigate(-1)}>← 뒤로가기</button>
-            <h3>학년 선택</h3>
-            {categories.map((grade) => (
-                <button key={grade} className="menu-btn"
-                        onPointerUp={() => navigate(generatePath(paths.classroomSelect.url, {grade: grade.toString()}))}>
-                    {grade === 0 ? '1부' : `${grade}학년`}
+            <BackButton/>
+            <h4>주일 출석</h4>
+            {/* 여기서부터 새로 만든 반응형 그리드와 카드를 사용해 */}
+            <div className="selection-grid">
+                {categories.map((grade) => (
+                    <button
+                        key={grade}
+                        className="selection-card"
+                        onPointerUp={() => navigate(generatePath(paths.classroomSelect.url, { grade: grade.toString() }))}
+                    >
+                        {grade === 0 ? '1부 예배' : `${grade}학년`}
+                    </button>
+                ))}
+                <button
+                    className="selection-card"
+                    onPointerUp={() => navigate(paths.administrativeTeacherSelect.url)}
+                >
+                    반목 외 교사
                 </button>
-            ))}
-            <div className="half-btn-group">
-                <button key='new-friends' className="menu-btn"
-                        onPointerUp={() => navigate(paths.administrativeTeacherSelect.url)}>
-                    반목 외
-                </button>
-                <button key='new-friends' className="menu-btn"
-                        onPointerUp={() => navigate(paths.newfriend.url)}>
-                    새친구
+                <button
+                    className="selection-card"
+                    onPointerUp={() => navigate(paths.newfriend.url)}
+                >
+                    새친구🌱
                 </button>
             </div>
-            <hr style={{margin: '10px 0 20px 0'}}/>
 
-            <button key='worshipTeam' className="menu-btn"
-                    onPointerUp={() => navigate(paths.worshipTeamSelect.url)}>
-                찬양팀
-            </button>
-
+            <h4>토요일 출석</h4>
+            <div className="selection-grid">
+                <button
+                    className="selection-card"
+                    onPointerUp={() => navigate(paths.worshipTeamSelect.url)}
+                >
+                    찬양팀🎵
+                </button>
+            </div>
         </div>
     );
 };

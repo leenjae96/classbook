@@ -1,38 +1,52 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {apiFetch} from "../../hooks/api.ts";
-// import { paths } from '../../constants/paths.tsx'; // 나중에 하단 버튼 주석 해제 시 사용
+import { useEffect, useMemo, useState } from 'react';
+import { apiFetch } from "../../hooks/api.ts";
+import { DateSelector } from "../../components/common/DateSelector.tsx";
+import { getMostRecentSunday } from "../../util/dateUtils.tsx";
+import BackButton from "../../components/common/BackButton.tsx";
+import styles from './StatisticsPage.module.css'; // CSS 모듈 임포트
 
-// 1. DTO 타입 정의
-interface ClassStats {
+// 1. 백엔드 DTO에 맞춘 인터페이스 정의
+interface StudentStats {
     grade: number;
     classNo: string;
     attendance: number;
     total: number;
     date: string;
+    isSummited: boolean;
+}
+
+interface NewFriendStats {
+    attendance: number;
+    total: number;
+}
+
+interface StatisticsResponse {
+    classStats: StudentStats[];
+    newFriendStats: NewFriendStats;
 }
 
 const StatisticsPage = () => {
-    const navigate = useNavigate();
+    const [selectedDate, setSelectedDate] = useState<string>(getMostRecentSunday());
 
-    const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString('en-CA'));
-    const [classStats, setClassStats] = useState<ClassStats[]>([]);
+    // 2. 상태 분리: 반별 통계 배열과 새친구 객체
+    const [classStats, setClassStats] = useState<StudentStats[]>([]);
+    const [newFriendStats, setNewFriendStats] = useState<NewFriendStats>({ attendance: 0, total: 0 });
     const [loading, setLoading] = useState<boolean>(false);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            // 백엔드 Controller의 엔드포인트와 파라미터(date)에 맞춰 요청
-            const data = await apiFetch(`/api/statistics/class-stats?date=${selectedDate}`);
+            // 백엔드가 StatisticsResponse 객체 형태로 내려줌
+            const data: StatisticsResponse = await apiFetch(`/api/statistics/student-stats?date=${selectedDate}`);
 
-            // 받아온 실제 데이터를 상태에 저장
-            setClassStats(data);
+            // 각각의 상태에 나누어 저장
+            setClassStats(data.classStats || []);
+            setNewFriendStats(data.newFriendStats || { attendance: 0, total: 0 });
         } catch (error) {
             console.error("통계 데이터를 불러오는데 실패했습니다.", error);
-            // 에러 발생 시 빈 배열로 초기화하여 화면이 깨지지 않게 방어
             setClassStats([]);
+            setNewFriendStats({ attendance: 0, total: 0 });
         } finally {
-            // 성공/실패 여부와 상관없이 로딩 상태 해제
             setLoading(false);
         }
     };
@@ -41,18 +55,17 @@ const StatisticsPage = () => {
         fetchData();
     }, [selectedDate]);
 
-    const handlePrevWeek = () => {
-        const date = new Date(selectedDate);
-        date.setDate(date.getDate() - 7);
-        setSelectedDate(date.toLocaleDateString('en-CA'));
-    };
+    // 학년별 데이터 그룹화
+    const groupedStats = useMemo(() => {
+        const groups: Record<number, StudentStats[]> = {};
+        classStats.forEach(stat => {
+            if (!groups[stat.grade]) groups[stat.grade] = [];
+            groups[stat.grade].push(stat);
+        });
+        return groups;
+    }, [classStats]);
 
-    const handleNextWeek = () => {
-        const date = new Date(selectedDate);
-        date.setDate(date.getDate() + 7);
-        setSelectedDate(date.toLocaleDateString('en-CA'));
-    };
-
+    // 일반 학생 전체 총계 계산
     const overallStats = classStats.reduce((acc, current) => {
         acc.attendance += current.attendance;
         acc.total += current.total;
@@ -65,117 +78,96 @@ const StatisticsPage = () => {
         return `${percent}%`;
     };
 
-    // --- 시각적 스타일 정의 ---
-    const colors = {
-        primary: '#007bff',
-        accent: '#4dd0e1',
-        bgGrey: '#f8f9fa',
-        textMain: '#333',
-        textSub: '#555',
+    const getGradeName = (grade: number) => grade === 0 ? '1부' : `${grade}학년`;
+    const getClassName = (grade: number, classNo: string) => {
+        if (grade === 0) return classNo === '0' ? '여자반' : '남자반';
+        return `${classNo}반`;
     };
 
-    const rowPillStyle = {
-        display: 'flex',
-        justifyContent: 'space-between',
-        backgroundColor: colors.bgGrey,
-        padding: '12px 20px',
-        borderRadius: '25px',
-        alignItems: 'center',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-        marginBottom: '10px'
+    // 학년별 소계 계산 함수
+    const getSubTotal = (stats: StudentStats[]) => {
+        return stats.reduce((acc, curr) => {
+            acc.attendance += curr.attendance;
+            acc.total += curr.total;
+            return acc;
+        }, { attendance: 0, total: 0 });
     };
 
     return (
-        <div className="content" style={{ position: 'relative' }}>
-            {/* 상단 헤더 (다른 페이지와 통일) */}
-            <button className="go-back-btn" onClick={() => navigate(-1)} style={{ marginBottom: '10px' }}>
-                ← 뒤로가기
-            </button>
-            <h3>출석 통계</h3>
+        <div className="content" style={{ position: 'relative', paddingBottom: '40px' }}>
+            <BackButton/>
+            <h4>출석 통계</h4>
 
-            {/* 날짜 선택 영역 */}
-            <div style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginBottom: '25px',
-                marginTop: '15px'
-            }}>
-                <button onClick={handlePrevWeek} style={{ border: 'none', background: colors.primary, color: 'white', cursor: 'pointer', padding: '6px 12px', borderRadius: '4px' }}>◀</button>
-                <div style={{ margin: '0 20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
-                        style={{
-                            border: 'none',
-                            fontSize: '17px',
-                            fontWeight: '500',
-                            color: colors.textMain,
-                            fontFamily: 'inherit',
-                            cursor: 'pointer',
-                            backgroundColor: 'transparent'
-                        }}
-                    />
-                </div>
-                <button onClick={handleNextWeek} style={{ border: 'none', background: colors.primary, color: 'white', cursor: 'pointer', padding: '6px 12px', borderRadius: '4px' }}>▶</button>
-            </div>
+            <DateSelector
+                selectedDate={selectedDate}
+                onChange={setSelectedDate}
+            />
 
-            {/* 통계 데이터 목록 영역 */}
             {loading ? (
-                <div style={{ textAlign: 'center', padding: '50px 0', color: '#888' }}>데이터를 불러오는 중...</div>
+                <div className={styles.loading}>데이터를 불러오는 중...</div>
             ) : (
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {classStats.map((stat, index) => (
-                        <div key={index} style={rowPillStyle}>
-                            <span style={{ fontWeight: '600', fontSize: '16px', color: colors.textMain }}>
-                                {stat.grade}학년 {stat.classNo}반
-                            </span>
-                            <span style={{ fontSize: '16px', fontWeight: '500', color: colors.textSub }}>
-                                {stat.attendance}/{stat.total}
-                                <span style={{ color: colors.accent, marginLeft: '8px', fontSize: '14px', fontWeight: '600' }}>
-                                    {renderPercent(stat.attendance, stat.total)}
-                                </span>
-                            </span>
-                        </div>
-                    ))}
+                <div className={styles.container}>
+                    {/* 반별/학년별 통계 렌더링 (새친구 미포함) */}
+                    {Object.keys(groupedStats).sort((a, b) => Number(a) - Number(b)).map(gradeKey => {
+                        const grade = Number(gradeKey);
+                        const stats = groupedStats[grade];
+                        const subTotal = getSubTotal(stats);
 
-                    {/* 전체 카운트 행 */}
-                    <div style={{...rowPillStyle, backgroundColor: '#e8f0fe', marginTop: '15px'}}>
-                        <span style={{ fontWeight: '700', fontSize: '16px', color: colors.textMain }}>
-                            전체카운트
-                        </span>
-                        <span style={{ fontSize: '16px', fontWeight: '600', color: colors.textSub }}>
-                            {overallStats.attendance}/{overallStats.total}
-                            <span style={{ color: colors.accent, marginLeft: '8px', fontSize: '14px', fontWeight: '700' }}>
+                        return (
+                            <div key={grade} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                {/* 학년 전체 소계 Row */}
+                                <div className={styles.gradeTotalRow}>
+                                    <span className={styles.gradeTitle}>
+                                        {getGradeName(grade)} 전체
+                                    </span>
+                                    <span className={styles.gradeStats}>
+                                        {subTotal.attendance}/{subTotal.total}
+                                        <span className={styles.percent}>
+                                            {renderPercent(subTotal.attendance, subTotal.total)}
+                                        </span>
+                                    </span>
+                                </div>
+
+                                {/* 반별 디테일 Row */}
+                                {stats.map((stat, idx) => {
+                                    const isMissing = stat.attendance === 0;
+
+                                    return (
+                                        <div key={idx} className={`${styles.classRow} ${isMissing ? styles.classRowMissing : ''}`}>
+                                            <span className={`${styles.className} ${isMissing ? styles.classNameMissing : ''}`}>
+                                                {getClassName(grade, stat.classNo)}
+                                            </span>
+                                            <span className={`${styles.classStats} ${isMissing ? styles.classStatsMissing : ''}`}>
+                                                {stat.attendance}/{stat.total}
+                                                <span className={`${styles.percent} ${isMissing ? styles.classNameMissing : styles.percentAccent}`}>
+                                                    {renderPercent(stat.attendance, stat.total)}
+                                                </span>
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })}
+
+                    {/* 3. 제일 하단: 전체 카운트 (여기에만 새친구 데이터 병합 렌더링) */}
+                    <div className={styles.overallRow}>
+                        <span className={styles.overallTitle}>중등부 전체</span>
+                        <span className={styles.overallStats}>
+                            {/* 새친구가 1명이라도 있을 때만 텍스트 표시 */}
+                            {newFriendStats.total > 0 && (
+                                <span className={styles.newFriendText}>
+                                    (새친구 {newFriendStats.attendance}/{newFriendStats.total}+)
+                                </span>
+                            )}
+                            {overallStats.attendance} / {overallStats.total}
+                            <span className={styles.overallPercent}>
                                 {renderPercent(overallStats.attendance, overallStats.total)}
                             </span>
                         </span>
                     </div>
                 </div>
             )}
-
-            {/* 하단 네비게이션 버튼 (주석 처리) */}
-            {/* <div style={{
-                display: 'flex',
-                justifyContent: 'space-around',
-                marginTop: '40px',
-                padding: '20px 0',
-                borderTop: '2px solid #eee',
-                backgroundColor: 'white'
-            }}>
-                <button
-                    onPointerUp={() => navigate(paths.root)}
-                    style={{ border: 'none', background: 'none', fontSize: '17px', fontWeight: 'bold', cursor: 'pointer', color: colors.textMain, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    🏠 홈으로가기
-                </button>
-                <button
-                    onPointerUp={() => navigate(paths.administrativeTeacherSelect.url)}
-                    style={{ border: 'none', background: 'none', fontSize: '17px', fontWeight: 'bold', cursor: 'pointer', color: colors.textMain, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    📝 목양관리
-                </button>
-            </div>
-            */}
         </div>
     );
 };

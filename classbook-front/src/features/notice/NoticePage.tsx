@@ -1,9 +1,8 @@
-import {useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
 import type {BirthdayResponse, StudentBirthday, TeacherBirthday} from "../../constants/types.tsx";
+import BackButton from "../../components/common/BackButton.tsx";
 
 const NoticePage = () => {
-        const navigate = useNavigate();
         const [birthdayResponse, setBirthdayResponse] = useState<BirthdayResponse>()
 
         useEffect(() => {
@@ -26,7 +25,7 @@ const NoticePage = () => {
         }, []);
         return (
             <div className="content">
-                <button className="go-back-btn" onPointerUp={() => navigate(-1)}>← 뒤로가기</button>
+                <BackButton/>
                 <h3>생일</h3>
                 개발중인 페이지입니다.
 

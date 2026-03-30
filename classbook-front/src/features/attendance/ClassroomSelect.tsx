@@ -4,6 +4,7 @@ import type {ClassroomSummary} from "../../constants/types.tsx";
 import {paths} from "../../constants/paths.tsx";
 import {apiFetch} from "../../hooks/api.ts";
 import {ErrorMessage} from "../../components/common/ErrorMessage.tsx";
+import BackButton from "../../components/common/BackButton.tsx";
 
 const ClassroomSelect = () => {
     const navigate = useNavigate();
@@ -13,9 +14,8 @@ const ClassroomSelect = () => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const loadClassroomList = () => {
-        // LEE: axios로 추후 변경
         apiFetch(`/api/attendances/classroom?grade=${grade}`)
-            .then((data : ClassroomSummary[])  => {
+            .then((data: ClassroomSummary[]) => {
                 setClassrooms(data);
             })
             .catch(err => {
@@ -24,29 +24,38 @@ const ClassroomSelect = () => {
                 setClassrooms([]);
             });
     };
+
     useEffect(() => {
         loadClassroomList();
     }, [grade]);
 
     return (
         <div className="content">
-            <button className="go-back-btn" onPointerUp={() => navigate(-1)}>← 뒤로가기</button>
-            <h3>{grade == '0' ? `1부` : `${grade}학년`} - 반 선택</h3>
+            <BackButton/>
+            <h4>{grade == '0' ? `1부` : `${grade}학년`} - 반 선택</h4>
+
             {errorMessage ? (
-                <ErrorMessage
-                    message={errorMessage}/>
-            ) : classrooms.map((classroom) => (
-                    <button key={classroom.id} className="menu-btn"
+                <ErrorMessage message={errorMessage}/>
+            ) : (
+                <div className="selection-grid">
+                    {classrooms.map((classroom) => (
+                        <div
+                            key={classroom.id}
+                            className="selection-card"
                             onPointerUp={() => navigate(generatePath(paths.classroomSheet.url, {
                                 grade: classroom.grade.toString(),
                                 classNo: classroom.classNo
-                            }))}>
-                        {grade === '0' ?
-                            (classroom.classNo === '1' ? '남자' : '여자')
-                            : `${classroom.classNo}`}반
-                        ({classroom.teacherName} 쌤)
-                    </button>
-                )
+                            }))}
+                        >
+                            <span>
+                                {grade === '0' ?
+                                    (classroom.classNo === '1' ? '남자반' : '여자반')
+                                    : `${classroom.classNo}반`}
+                            </span>
+                            <span className="sub-text">{classroom.teacherName} 선생님</span>
+                        </div>
+                    ))}
+                </div>
             )}
         </div>
     );

@@ -17,11 +17,12 @@ export const TeacherAttendanceRow= ({teacherAttendance, onToggle, onCommentChang
             <button
                 onPointerUp={handlePointerUp}
                 style={{
-                    flex: 1,
+                    flexBasis: '30%',
+                    minWidth: '90px',
+                    maxWidth: '180px',
+                    flexShrink: 0, // 90px 이하로 찌그러짐 방지
                     padding: '15px',
-                    fontSize: '13px',
-                    backgroundColor: teacherAttendance.status ? '#4caf50' : '#e0e0e0',
-                    color: teacherAttendance.status ? 'white' : 'black',
+                    fontSize: '14px',
                     border: 'none',
                     borderRadius: '5px',
                     marginRight: '10px',
@@ -30,7 +31,9 @@ export const TeacherAttendanceRow= ({teacherAttendance, onToggle, onCommentChang
                     WebkitUserSelect: 'none',
                     touchAction: 'manipulation',
                     transition: 'background-color 0.3s',
-                    minWidth: '90px'
+                    backgroundColor: teacherAttendance.status ? '#4caf50' : '#e0e0e0',
+                    color: teacherAttendance.status ? 'white' : 'black',
+
                 }}
             >
                 {teacherAttendance.teacherName}
@@ -42,7 +45,7 @@ export const TeacherAttendanceRow= ({teacherAttendance, onToggle, onCommentChang
                 placeholder="결석 사유 및 심방 내용"
                 value={teacherAttendance.comments || ''}
                 onChange={(e) => onCommentChange(teacherAttendance.id, e.target.value)}
-                style={{ width: '50%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginRight: '5px' }}
+                style={{flexGrow: '1', width: '0', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', marginRight: '5px' }}
             />
 
         </div>

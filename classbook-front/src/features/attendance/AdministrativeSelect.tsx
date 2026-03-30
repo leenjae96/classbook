@@ -4,6 +4,7 @@ import type {TeacherInfo} from "../../constants/types.tsx";
 import {paths} from "../../constants/paths.tsx";
 import {ErrorMessage} from "../../components/common/ErrorMessage.tsx";
 import {apiFetch} from "../../hooks/api.ts";
+import BackButton from "../../components/common/BackButton.tsx";
 
 const AdministrativeSelect = () => {
     const navigate = useNavigate();
@@ -28,18 +29,25 @@ const AdministrativeSelect = () => {
 
     return (
         <div className="content">
-            <button className="go-back-btn" onPointerUp={() => navigate(-1)}>← 뒤로가기</button>
-            <h3>선생님 선택</h3>
+            <BackButton/>
+            <h4>선생님 선택</h4>
             {errorMessage ? (
                 <ErrorMessage
                     message={errorMessage}/>
             ) : teachers && teachers.length > 0 ? (
-                <div className="half-btn-group">
+                <div
+                    className="selection-grid"
+                >
                     {teachers.map((teacher) => (
-                        <button key={teacher.id} className="menu-btn"
-                                onPointerUp={() => navigate(generatePath(paths.administrativeTeacherSheet.url, {teacherId: teacher.id.toString()}))}>
-                            {teacher.name} 쌤
-                        </button>
+                        <div
+                            key={teacher.id}
+                            className="selection-card"
+                            onPointerUp={() => navigate(generatePath(paths.administrativeTeacherSheet.url, {teacherId: teacher.id.toString()}))}
+                        >
+                            <span>
+                               {teacher.name} 쌤
+                            </span>
+                        </div>
                     ))}
                 </div>
             ) : (

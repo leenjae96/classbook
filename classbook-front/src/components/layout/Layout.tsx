@@ -66,7 +66,7 @@ const Layout = () => {
                 <div className="sidebar-header">
                     <h2 className="logo-text">주일학교 출석</h2>
                     <button className="toggle-btn" onClick={toggleSidebar}>
-                        {isPinned && window.innerWidth > 600 ? '◂' : '☰'}
+                        {isPinned && window.innerWidth > 600 ? '|◀' : '▶|'}
                     </button>
                 </div>
 

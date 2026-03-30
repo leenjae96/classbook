@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+//LEE: readOnly에만 true라는건 이 내부 메소드 에 대해 지정하지 않은거 default?
 @Transactional(readOnly = true)
 public class AttendanceService {
 
@@ -68,7 +69,7 @@ public class AttendanceService {
 
     public AttendanceDto.Sheet getSheetOfNewFriend(LocalDate date) {
         List<Student> students = studentRepository.findByStatus(Status.NEW.getCode());
-
+        System.out.println(students.size());
         return getSheet(students, null, date);
     }
 
@@ -87,12 +88,17 @@ public class AttendanceService {
                             ));
 
             studentAttendanceList = students.stream()
+                    .filter(student -> {
+                        return (student.getStatus() == Status.NEW.getCode() ||
+                                student.getStatus() == Status.NORMAL.getCode());
+                    })
                     .map(student -> {
                         StudentAttendance sa = studentAttendanceMap.get(student.getId());
                         if (sa == null) {
                             return AttendanceDto.StudentAttendance.builder()
                                     .id(student.getId())
                                     .studentName(student.getName())
+                                    .studentStatus(student.getStatus())
                                     .status(false)
                                     .comments(null)
                                     .build();
@@ -100,6 +106,7 @@ public class AttendanceService {
                             return AttendanceDto.StudentAttendance.builder()
                                     .id(student.getId())
                                     .studentName(student.getName())
+                                    .studentStatus(student.getStatus())
                                     .status(sa.getStatus())
                                     .comments(sa.getComments())
                                     .build();
@@ -115,6 +122,7 @@ public class AttendanceService {
             if (tr == null) {
                 teacherReport = AttendanceDto.TeacherReport.builder()
                         .id(teacher.getId())
+                        .name(teacher.getName())
                         .worship(-1)
                         .otn(false)
                         .dawnPray(0)
@@ -123,6 +131,7 @@ public class AttendanceService {
             } else {
                 teacherReport = AttendanceDto.TeacherReport.builder()
                         .id(teacher.getId())
+                        .name(teacher.getName())
                         .otn(tr.getOtn())
                         .worship(tr.getWorship())
                         .dawnPray(tr.getDawnPray())
@@ -183,7 +192,6 @@ public class AttendanceService {
     @Transactional
     //LEE: save 작업이후 예외나 에러시 사용자는 어떻게 감지할 수 있나?
     public void saveSheet(LocalDate date, AttendanceDto.Sheet sheet) {
-        System.out.println(sheet);
         // administrative data인 경우는 studentChecks가 없음.
         List<AttendanceDto.StudentAttendance> studentAttendances = sheet.studentAttendances();
         if (studentAttendances != null) {

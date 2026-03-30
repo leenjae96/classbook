@@ -1,14 +1,14 @@
-import {useNavigate} from "react-router-dom";
 import {useAttendance} from "../../hooks/useAttendance.ts"; // Hook 사용
 import {StudentAttendanceRow} from "../../components/attendance/StudentAttendanceRow.tsx"; // Component 사용
 import {useState} from "react";
 import type {StudentAttendance, StudentInfo} from "../../constants/types.tsx";
 import {StudentInfoModal} from "../../components/attendance/StudentInfoModal.tsx";
 import {apiFetch} from "../../hooks/api.ts";
+import {DateSelector} from "../../components/common/DateSelector.tsx";
+import {getMostRecentSunday} from "../../util/dateUtils.tsx";
+import BackButton from "../../components/common/BackButton.tsx";
 
 const NewFriend = () => {
-    const navigate = useNavigate();
-
     const {
         selectedDate,
         setSelectedDate,
@@ -18,7 +18,7 @@ const NewFriend = () => {
         submitAttendance
     } = useAttendance({
         apiEndpoint: '/api/attendances/new-friend/sheet',
-        initialDate: new Date().toLocaleDateString('en-CA')
+        initialDate: getMostRecentSunday()
     });
 
     // 모달 상태 관리
@@ -27,11 +27,8 @@ const NewFriend = () => {
 
     const handleEditClick = async (student: StudentAttendance) => {
         try {
-            // 1. 서버에 해당 학생(id)의 전체 인적사항(StudentInfo)을 요청합니다.
             const studentDetail = await apiFetch(`/api/attendances/student?id=${student.id}`);
-            // 2. 받아온 전체 데이터를 targetStudent에 넣습니다.
             setTargetStudent(studentDetail);
-            // 3. 데이터가 성공적으로 준비되었으니 모달을 엽니다.
             setIsModalOpen(true);
         } catch (error) {
             console.error("학생 정보 조회 실패:", error);
@@ -47,10 +44,10 @@ const NewFriend = () => {
 
     return (
         <div className="content">
-            <button className="go-back-btn" onClick={() => navigate(-1)}>← 뒤로가기</button>
+            <BackButton/>
 
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                <h3>새친구 관리</h3>
+                <h4>새친구 관리</h4>
                 <button
                     onClick={handleAddClick}
                     style={{
@@ -65,23 +62,11 @@ const NewFriend = () => {
                 </button>
             </div>
 
-            {/* 날짜 선택기 */}
-            <div style={{
-                marginBottom: '20px',
-                padding: '10px',
-                backgroundColor: '#f8f9fa',
-                borderRadius: '8px',
-                border: '1px solid #ddd'
-            }}>
-                <label style={{marginRight: '10px', fontWeight: 'bold'}}>날짜:</label>
-                <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    style={{padding: '5px', borderRadius: '4px', border: '1px solid #ccc'}}
-                />
-            </div>
-            <>개발중인 페이지입니다.</>
+            {/* ✨ 교체된 날짜 선택기 UI */}
+            <DateSelector
+                selectedDate={selectedDate}
+                onChange={setSelectedDate}
+            />
 
             <div className="student-list">
                 {studentAttendances.map((studentCheck) => (
@@ -108,11 +93,13 @@ const NewFriend = () => {
 
             <hr style={{margin: '20px 0'}}/>
 
-            <button className="menu-btn" onClick={submitAttendance} style={{backgroundColor: '#28a745'}}>
-                출석 제출하기
+            <button
+                className="submit-btn"
+                onClick={submitAttendance}
+            >
+                제출하기
             </button>
 
-            {/* 모달 (다음 단계에서 구현) */}
             <StudentInfoModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
@@ -123,10 +110,8 @@ const NewFriend = () => {
                         // id가 있으면 기존 학생 수정(PUT), 없으면 새친구 추가(POST)
                         const isEdit = !!data.id;
                         const method = isEdit ? 'PUT' : 'POST';
-                        // 백엔드 API 설계에 따라 경로는 맞춰주세요.
                         const url = '/api/attendances/new-friend';
-//
-                        await fetch(url, { // 엔드포인트는 상황에 맞게 조정 필요
+                        await fetch(url, {
                             method: method,
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify(data),

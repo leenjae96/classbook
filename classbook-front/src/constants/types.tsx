@@ -41,11 +41,13 @@ export interface Sheet {
 export interface StudentAttendance {
     id: number;
     studentName: string;
+    studentStatus: number;
     status: boolean;
     comments: string;
 }
 export interface TeacherReport {
     id: number;
+    name: string;
     worship: number;
     otn: boolean;
     dawnPray: number;

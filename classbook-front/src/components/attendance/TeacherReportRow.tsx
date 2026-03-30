@@ -5,7 +5,7 @@ interface Props {
     onWorshipChange: (worship: number) => void;
     onOtnChange: (otn: number) => void;
     onDawnPrayChange: (dawnPray: number) => void;
-    onCommentsChange: (comment: string) => void;
+    onCommentsChange: (comments: string) => void;
 }
 
 export const TeacherReportRow = ({teacher, onWorshipChange, onOtnChange, onDawnPrayChange, onCommentsChange}: Props) => {
@@ -81,6 +81,7 @@ export const TeacherReportRow = ({teacher, onWorshipChange, onOtnChange, onDawnP
             {/* 건의사항 */}
             <textarea
                 placeholder="선생님 심방, 기도제목을 적어주세요."
+                value={teacher.comments || ''} // ✨ 이 줄을 추가해줘!
                 style={{width: '95%', height: '80px', marginBottom: '10px', padding: '10px', borderRadius: '5px'}}
                 onChange={(e) => onCommentsChange(e.target.value)}
             />

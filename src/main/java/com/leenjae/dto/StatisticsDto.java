@@ -1,23 +1,47 @@
 package com.leenjae.dto;
 
+import lombok.Builder;
+
 import java.time.LocalDate;
+import java.util.List;
 
 public class StatisticsDto {
 
-    public record GradeStats(
+    public record WeeklyDashboardResponse(
+            String date,
+            Long grade0,
+            Long grade1,
+            Long grade2,
+            Long grade3
+    ) {}
+
+    public record WeeklyGradeStats(
+            LocalDate date,
             Integer grade,
-            Long attendance,
-            Long total,
+            Long attendanceCount
+    ) {}
+
+    @Builder
+    public record Response(
+            List<StudentStats> classStats,
+            NewFriendStats newFriendStats,
             LocalDate date
     ) {
     }
 
-    public record ClassStats(
+    public record StudentStats(
             Integer grade,
             String classNo,
             Long attendance,
             Long total,
-            LocalDate date
+            Boolean isSummited
+    ) {
+    }
+
+    @Builder
+    public record NewFriendStats(
+            Long attendance,
+            Long total
     ) {
     }
 

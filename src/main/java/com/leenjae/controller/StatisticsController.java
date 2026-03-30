@@ -4,6 +4,7 @@ import com.leenjae.dto.StatisticsDto;
 import com.leenjae.service.StatisticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,22 +21,25 @@ import java.util.List;
 public class StatisticsController {
     private final StatisticsService statisticsService;
 
-    @GetMapping(value = "/grade-stats")
-    public List<StatisticsDto.GradeStats> getGradeStatistics(
+    @GetMapping(value = "/for-dashboard")
+    public ResponseEntity<List<StatisticsDto.WeeklyDashboardResponse>> getWeeklyStats(
+            @RequestParam LocalDate date
+    ) {
+        // 프론트에서 날짜를 안 던져줬을 때의 기본값 방어 로직 (선택 사항)
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        return ResponseEntity.ok(statisticsService.getDashboardStatistics(targetDate));
+    }
+
+
+    @GetMapping(value = "/student-stats")
+    public StatisticsDto.Response getGradeStatistics(
             @RequestParam LocalDate date
     ) {
         return statisticsService.getGradeStatistics(date);
     }
 
-    @GetMapping(value = "/class-stats")
-    public List<StatisticsDto.ClassStats> getClassStatistics(
-            @RequestParam LocalDate date
-    ) {
-        return statisticsService.getClassStatistics(date);
-    }
-
     @GetMapping(value = "/teacher-stats")
-    public List<StatisticsDto.TeacherStats> getTeacherStatistics(
+    public StatisticsDto.Response getTeacherStatistics(
             @RequestParam LocalDate date
     ) {
         return statisticsService.getTeacherStatistics(date);

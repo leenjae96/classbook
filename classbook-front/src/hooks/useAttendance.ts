@@ -4,7 +4,7 @@ import {useNavigate} from "react-router-dom";
 
 // API 호출 함수가 prop으로 들어오거나, URL이 들어오도록 설계
 interface UseAttendanceProps {
-    apiEndpoint: string; // 예: `/api/attendances/sheet?grade=1...`
+    apiEndpoint: string;
     initialDate?: string;
 }
 
@@ -49,9 +49,9 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
     }, []);
 
     // 3. 코멘트 수정
-    const updateStudentAttendanceComment = useCallback((id: number, comment: string) => {
+    const updateStudentAttendanceComment = useCallback((id: number, comments: string) => {
         setStudentAttendances(prev => prev.map(s =>
-            s.id === id ? {...s, comments: comment} : s
+            s.id === id ? {...s, comments: comments} : s
         ));
     }, []);
 
@@ -107,17 +107,13 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
             return;
         }
 
-        // 일요일 체크 로직 등은 여기서 하거나 컴포넌트에서 수행
         try {
             await fetch(`/api/attendances/sheet?date=${selectedDate}`, { // 엔드포인트는 상황에 맞게 조정 필요
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     studentAttendances: studentAttendances,
-                    teacherReport: {
-                        ...teacherReport,
-                        dawnPray: teacherReport?.dawnPray ?? 0
-                    },
+                    teacherReport: teacherReport ? teacherReport : null,
                     teacherAttendances: teacherAttendances
                 }),
 

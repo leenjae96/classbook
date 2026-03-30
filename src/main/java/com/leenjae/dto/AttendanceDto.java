@@ -35,6 +35,7 @@ public class AttendanceDto {
     public record StudentAttendance(
             Long id,
             String studentName,
+            Integer studentStatus,
             Boolean status,
             String comments
     ) {}
@@ -42,6 +43,7 @@ public class AttendanceDto {
     @Builder
     public record TeacherReport(
             Long id,
+            String name,
             Integer worship,
             Boolean otn,
             Integer dawnPray,

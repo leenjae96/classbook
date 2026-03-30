@@ -51,15 +51,15 @@ tasks.test {
 // 1. 리액트 프로젝트 경로 변수 지정 (본인 폴더명에 맞게 수정!)
 // 예: 현재 프로젝트 루트 바로 아래 'frontend'라는 폴더에 리액트가 있다면
 val frontendDir = "$projectDir/classbook-front"
+val isDevMode = project.hasProperty("dev")
 
 // 2. 리액트 빌드 명령어 실행 (OS에 따라 npm vs npm.cmd 구분)
 tasks.register<Exec>("buildReact") {
     group = "frontend"
     description = "Build the React application"
 
-    // 리액트 폴더에서 명령어를 실행하겠다
+    onlyIf{isDevMode}
     workingDir(file(frontendDir))
-
     // 윈도우인지 맥/리눅스인지 확인해서 명령어 결정
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
         commandLine("npm.cmd", "run", "build")
@@ -72,10 +72,9 @@ tasks.register<Exec>("buildReact") {
 tasks.register<Copy>("copyReactBuildFiles") {
     group = "frontend"
     description = "Copy React build files to Spring Boot static resources"
-
     // buildReact 작업이 먼저 끝나야 함
     dependsOn("buildReact")
-
+    onlyIf {isDevMode}
     // 리액트 빌드 결과물 경로 (보통 build 또는 dist)
     from("$frontendDir/dist")
     // 복사할 목적지 (Spring Boot 정적 리소스 경로)
