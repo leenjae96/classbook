@@ -1,0 +1,142 @@
+package com.leenjae.service;
+
+import com.leenjae.domain.Classroom;
+import com.leenjae.domain.Teacher;
+import com.leenjae.domain.TeacherRoles;
+import com.leenjae.dto.AdminDto;
+import com.leenjae.dto.AttendanceDto;
+import com.leenjae.dto.StudentDto;
+import com.leenjae.repository.ClassroomRepository;
+import com.leenjae.repository.StudentAttendanceRepository;
+import com.leenjae.repository.StudentRepository;
+import com.leenjae.repository.TeacherRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AdminService {
+    private final AttendanceService attendanceService;
+
+    private final TeacherRepository teacherRepository;
+    private final StudentRepository studentRepository;
+    private final StudentAttendanceRepository studentAttendanceRepository;
+    private final ClassroomRepository classroomRepository;
+
+    public AdminDto.CumulativeSheet getCumulativeStatistics(LocalDate startDate, LocalDate endDate) {
+        List<AdminDto.RawCumulativeStats> rawData = studentAttendanceRepository.getRawCumulativeStats(startDate, endDate);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+
+        // 전체 날짜 중에서 null이 아닌 것만 'MM/dd' 포맷으로 추출 후 중복 제거 & 정렬 (headerDates)
+        List<String> headerDates = rawData.stream()
+                .map(AdminDto.RawCumulativeStats::attendanceDate)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .map(date -> date.format(formatter))
+                .toList();
+
+        // 학생 ID 기준으로 데이터 그룹핑 (LinkedHashMap을 써서 Repository의 정렬 순서 유지)
+        Map<Long, List<AdminDto.RawCumulativeStats>> groupedByStudent =
+                rawData.stream()
+                        .collect(Collectors.groupingBy(
+                                AdminDto.RawCumulativeStats::studentId,
+                                LinkedHashMap::new,
+                                Collectors.toList()
+                        ));
+
+        // 프론트엔드용 학생 리스트 조립
+        List<AdminDto.StudentAttendanceSummary> students =
+                groupedByStudent.values().stream()
+                        .map(list -> {
+                            AdminDto.RawCumulativeStats first = list.get(0); // 학생 기본 정보는 첫 번째 row에서 추출
+
+                            // 출석한 날짜만 'MM/dd' 포맷으로 추출 (결석/미출석은 아예 안 담김)
+                            List<String> attendances =
+                                    list.stream()
+                                            .map(AdminDto.RawCumulativeStats::attendanceDate)
+                                            .filter(Objects::nonNull)
+                                            .map(date -> date.format(formatter))
+                                            .toList();
+
+                            return new AdminDto.StudentAttendanceSummary(
+                                    first.studentStatus(), first.grade(), first.classNo(), first.name(), attendances
+                            );
+                        })
+                        .toList();
+        return new AdminDto.CumulativeSheet(headerDates, students);
+    }
+
+    public List<StudentDto.SummaryInfo> getStudentSummaryInfo() {
+        return studentRepository.findAllStudentSummaryInfo();
+    }
+
+    public List<AdminDto.TotalReportResponse> getTotalReports(LocalDate date) {
+        List<AdminDto.TotalReportResponse> result = new ArrayList<>();
+        Set<Long> classroomTeacherIds = new HashSet<>(); // 이미 조회된 선생님 ID 기록용
+
+        // 1. 모든 반(Classroom)을 기준으로 보고서 불러오기
+        List<Classroom> classrooms = classroomRepository.findAll();
+        for (Classroom c : classrooms) {
+            Teacher teacher = c.getTeacher();
+            if (teacher == null) continue;
+            // 해당 반에 담당 선생님이 있다면 Set에 기록 (중복 조회 방지)
+            classroomTeacherIds.add(teacher.getId());
+            // 반 기준 시트 조회 (메서드명은 실제 프로젝트에 맞게 수정)
+            AttendanceDto.Sheet sheet = attendanceService.getSheetByGradeAndClassNo(
+                    c.getGrade(),
+                    Integer.parseInt(c.getClassNo()),
+                    date
+            );
+            result.add(new AdminDto.TotalReportResponse(
+                    c.getGrade(),
+                    c.getClassNo(),
+                    sheet
+            ));
+        }
+        // 2. 반을 맡지 않은 '남은 선생님들' 보고서 불러오기
+        List<Teacher> adminTeachers = teacherRepository.findAll()
+                .stream()
+                .filter(t -> !classroomTeacherIds.contains(t.getId()))
+                .filter(t -> !t.getRoles().contains(TeacherRoles.PASTOR))
+                .sorted(Comparator.comparing(Teacher::getName))
+                .toList();
+
+        for (Teacher t : adminTeachers) {
+            // 선생님 ID 기준 시트 조회 (반 정보가 없는 선생님)
+            AttendanceDto.Sheet sheet = attendanceService.getSheetByTeacherId(t.getId(), date);
+
+            result.add(new AdminDto.TotalReportResponse(
+                    null, // 학년 없음
+                    null, // 반 없음
+                    sheet
+            ));
+        }
+        // 3. 리스트 통합 후 정렬하여 반환
+        return result.stream()
+                .sorted((r1, r2) -> {
+                    // 학년이 없는(null) 선생님은 목록 맨 아래로 보냄
+                    if (r1.grade() == null && r2.grade() == null) return 0;
+                    if (r1.grade() == null) return 1;
+                    if (r2.grade() == null) return -1;
+
+                    // 학년 오름차순 정렬
+                    int gradeCompare = r1.grade().compareTo(r2.grade());
+                    if (gradeCompare != 0) return gradeCompare;
+
+                    // 반 오름차순 정렬
+                    int classNo1 = r1.classNo() != null ? Integer.parseInt(r1.classNo()) : 999;
+                    int classNo2 = r2.classNo() != null ? Integer.parseInt(r2.classNo()) : 999;
+                    return Integer.compare(classNo1, classNo2);
+                })
+                .toList();
+    }
+
+}

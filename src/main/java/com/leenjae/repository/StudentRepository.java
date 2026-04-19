@@ -2,6 +2,8 @@ package com.leenjae.repository;
 
 import com.leenjae.domain.Student;
 import com.leenjae.domain.StudentRole;
+import com.leenjae.dto.AdminDto;
+import com.leenjae.dto.StudentDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -36,6 +38,17 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
             "join s.roles r " +
             "where r in :studentRoles ")
     List<Student> findByRolesIn(Set<StudentRole> studentRoles);
+
+    @Query("""
+        SELECT new com.leenjae.dto.StudentDto$SummaryInfo(
+            s.id, s.name, c.grade, c.classNo, c.id, s.status
+        )
+        FROM Student s
+        LEFT JOIN s.classroom c
+        ORDER BY c.grade ASC, CAST(c.classNo AS int) ASC, s.name ASC
+    """)
+    List<StudentDto.SummaryInfo> findAllStudentSummaryInfo();
+
 
     List<Student> findByStatus(Integer status);
 }

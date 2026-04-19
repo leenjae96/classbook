@@ -1,6 +1,7 @@
 package com.leenjae.repository;
 
 import com.leenjae.domain.StudentAttendance;
+import com.leenjae.dto.AdminDto;
 import com.leenjae.dto.StatisticsDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -80,7 +81,23 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
             """)
     StatisticsDto.NewFriendStats getNewFriendStatsByDate(@Param("date") LocalDate date);
 
-
+    @Query("""
+                SELECT new com.leenjae.dto.AdminDto$RawCumulativeStats(
+                    s.id, s.status, c.grade, c.classNo, s.name, sa.date
+                )
+                FROM Student s
+                JOIN s.classroom c
+                LEFT JOIN StudentAttendance sa ON 
+                            sa.student = s AND 
+                            sa.status = true AND 
+                            sa.date >= :startDate AND
+                            sa.date <= :endDate
+                ORDER BY s.status ASC, c.grade ASC, CAST(c.classNo AS int) ASC, s.name ASC
+            """)
+    List<AdminDto.RawCumulativeStats> getRawCumulativeStats(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
 
 
 }

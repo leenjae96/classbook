@@ -1,0 +1,64 @@
+/* StudentDetailPage.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 40px;
+}
+
+.header {
+    margin-bottom: 10px;
+}
+
+/* 반별 그룹 카드 */
+.classGroup {
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.classTitle {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 16px;
+    color: #343a40;
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 8px;
+}
+
+/* 학생 버튼들이 들어갈 그리드 */
+.studentGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+}
+
+/* 개별 학생 버튼 */
+.studentBtn {
+    padding: 10px 5px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #495057;
+    transition: all 0.2s ease;
+}
+
+.studentBtn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    transform: translateY(-1px);
+}
+
+/* 상태별 색상 포인트 (예: 새친구, 별분반 등) */
+.statusNew {
+    border-left: 3px solid #ffb74d; /* 주황색 포인트 */
+}
+.statusSpecial {
+    border-left: 3px solid #9c27b0; /* 보라색 포인트 */
+}
