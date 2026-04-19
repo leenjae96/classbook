@@ -46,11 +46,11 @@ public class StatisticsService {
 
         return groupedByDate.entrySet().stream()
                 .map(entry -> {
-                    LocalDate locaDate = entry.getKey();
+                    LocalDate localDate = entry.getKey();
                     Map<Integer, Long> grades = entry.getValue();
 
                     return new StatisticsDto.WeeklyDashboardResponse(
-                            locaDate.format(formatter),
+                            localDate.format(formatter),
                             grades.getOrDefault(0, 0L),
                             grades.getOrDefault(1, 0L),
                             grades.getOrDefault(2, 0L),

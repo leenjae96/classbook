@@ -1,0 +1,38 @@
+/* TotalTeacherReports.module.css */
+
+.reportList {
+    display: flex;
+    flex-direction: column;
+    gap: 30px; /* 반과 반 사이 간격을 넓힘 */
+    margin-top: 20px;
+    padding-bottom: 40px;
+}
+
+.reportCard {
+    background: #fff;
+    border: 2px solid #dee2e6; /* 보고서 구분을 명확히 하기 위해 테두리 강화 */
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.reportHeader {
+    margin: 0 0 20px 0;
+    color: #2b8a3e; /* 제목에 초록색 포인트 */
+    font-size: 18px;
+    font-weight: 700;
+    border-bottom: 3px solid #f1f3f5;
+    padding-bottom: 12px;
+}
+
+/* ✨ 핵심: 내부 요소 클릭/입력 원천 차단 + 살짝 흐리게 처리해서 '보기 전용' 느낌 줌 */
+.readOnlyWrapper {
+    pointer-events: none;
+    opacity: 0.98;
+}
+
+/* 읽기 전용일 때는 포커스 링 등을 제거 */
+.readOnlyWrapper input,
+.readOnlyWrapper textarea {
+    background-color: transparent !important;
+}

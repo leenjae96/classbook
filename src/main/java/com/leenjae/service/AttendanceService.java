@@ -279,21 +279,23 @@ public class AttendanceService {
     public List<StudentDto.Info> getNewFriends() {
         return studentRepository.findByStatus(Status.NEW.getCode())
                 .stream()
-                .map(s -> StudentDto.Info.builder()
-                        .id(s.getId())
-                        .classroomId(s.getClassroom().getId())
-                        .name(s.getName())
-                        .gender(s.getGender())
-                        .school(s.getSchool())
-                        .phone(s.getPhone())
-                        .parentPhone(s.getParentPhone())
-                        .address(s.getAddress())
-                        .birthday(s.getBirthday())
-                        .status(s.getStatus())
-                        .registeredAt(s.getRegisteredAt())
-                        .promotedAt(s.getPromotedAt())
-                        .remark(s.getRemark())
-                        .build()
+                .map(s -> new StudentDto.Info(
+                                s.getId(),
+                                s.getClassroom().getGrade(),
+                                s.getClassroom().getClassNo(),
+                                s.getClassroom().getId(),
+                                s.getName(),
+                                s.getGender(),
+                                s.getSchool(),
+                                s.getPhone(),
+                                s.getParentPhone(),
+                                s.getAddress(),
+                                s.getBirthday(),
+                                s.getStatus(),
+                                s.getRegisteredAt(),
+                                s.getPromotedAt(),
+                                s.getRemark()
+                        )
                 )
                 .toList();
     }
@@ -355,25 +357,25 @@ public class AttendanceService {
     }
 
     public StudentDto.Info getStudent(Long id) {
-        Student student = studentRepository.findById(id)
+        Student s = studentRepository.findById(id)
                 .orElseThrow();
-        Classroom classroom = student.getClassroom();
-        return StudentDto.Info.builder()
-                .id(student.getId())
-                .classroomId(classroom == null ? null : classroom.getId())
-                .grade(classroom == null ? null : classroom.getGrade())
-                .classNo(classroom == null ? null : classroom.getClassNo())
-                .name(student.getName())
-                .gender(student.getGender())
-                .school(student.getSchool())
-                .phone(student.getPhone())
-                .parentPhone(student.getParentPhone())
-                .address(student.getAddress())
-                .birthday(student.getBirthday())
-                .status(student.getStatus())
-                .registeredAt(student.getRegisteredAt())
-                .promotedAt(student.getPromotedAt())
-                .remark(student.getRemark())
-                .build();
+        Classroom c = s.getClassroom();
+        return new StudentDto.Info(
+                s.getId(),
+                c.getGrade(),
+                c.getClassNo(),
+                c.getId(),
+                s.getName(),
+                s.getGender(),
+                s.getSchool(),
+                s.getPhone(),
+                s.getParentPhone(),
+                s.getAddress(),
+                s.getBirthday(),
+                s.getStatus(),
+                s.getRegisteredAt(),
+                s.getPromotedAt(),
+                s.getRemark()
+        );
     }
 }

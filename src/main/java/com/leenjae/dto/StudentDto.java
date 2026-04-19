@@ -9,7 +9,17 @@ import java.time.LocalDate;
 public class StudentDto {
     //LEE: 일단은 새친구등록에 대한 부분만 생각하고
     // 이후에 인적사항 변경도 가능하도록 범용 req res로 변경 필요.
-    @Builder
+
+    public record SummaryInfo(
+            Long id,
+            String name,
+            Integer grade,
+            String classNo,
+            Long classroomId,
+            Integer status
+    ) {
+    }
+
     public record Info(
             Long id,
             Integer grade,

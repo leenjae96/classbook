@@ -12,8 +12,11 @@ import NoticePage from "./features/notice/NoticePage.tsx";
 import StatisticsPage from "./features/statistics/StatisticsPage.tsx";
 import './App.css';
 import Layout from "./components/layout/Layout.tsx";
-import AdminCategorySelect from "./features/administrator/AdminCategorySelect.tsx";
+import AdminCategorySelect from "./features/admin/AdminCategorySelect.tsx";
 import Home from "./features/Home.tsx";
+import CumulativeStatistics from "./features/admin/CumulativeStatistics.tsx";
+import StudentDetailPage from "./features/admin/StudentDetailPage.tsx";
+import TotalTeacherReports from "./features/admin/TotalTeacherReports.tsx";
 
 
 function App() {
@@ -33,8 +36,14 @@ function App() {
                     <Route path={paths.worshipTeamSheet.url} element={<WorshipTeamSheet/>}/>
 
                     <Route path={paths.noticeCategorySelect.url} element={<NoticePage/>}/>
+
                     <Route path={paths.statistics.url} element={<StatisticsPage/>}/>
+
                     <Route path={paths.administrator.url} element={<AdminCategorySelect/>}/>
+                    <Route path={paths.cumulativeStatistics.url} element={<CumulativeStatistics/>}/>
+                    <Route path={paths.studentDetail.url} element={<StudentDetailPage/>}/>
+                    <Route path={paths.totalTeacherReports.url} element={<TotalTeacherReports/>}/>
+
                 </Route>
             </Routes>
         </BrowserRouter>

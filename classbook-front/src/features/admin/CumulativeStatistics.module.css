@@ -1,0 +1,102 @@
+/* CumulativeStatistics.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    /* 🚨 강제 높이 제한 삭제 (이중 스크롤 원인 제거) */
+}
+
+.headerControls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ✨ 테이블 감싸는 곳에서 스크롤을 완벽히 통제 */
+.tableWrapper {
+    width: 100%;
+    max-width: 100%;
+    /* 🚨 여기서 최대 높이를 지정해서 안쪽 스크롤만 생기게 함 */
+    max-height: calc(100vh - 200px);
+    overflow: auto; /* 상하좌우 스크롤 생성 */
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+.statsTable {
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
+}
+
+.statsTable th, .statsTable td {
+    /* 🚨 box-sizing 추가: padding이 너비를 파괴하지 못하게 방어 (틀고정 겹침 방지) */
+    box-sizing: border-box;
+    padding: 8px 4px;
+    border-right: 1px solid #e9ecef;
+    border-bottom: 1px solid #e9ecef;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 13px;
+    background-color: #fff;
+}
+
+.statsTable thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    z-index: 10;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* ✨ 틀고정 위치(left)와 너비(width)를 딱 맞게 재계산 */
+.stickyCol1 { position: sticky; left: 0; min-width: 50px; width: 50px; z-index: 5; }
+.stickyCol2 { position: sticky; left: 50px; min-width: 40px; width: 40px; z-index: 5; }
+.stickyCol3 { position: sticky; left: 90px; min-width: 40px; width: 40px; z-index: 5; }
+.stickyCol4 { position: sticky; left: 130px; min-width: 60px; width: 60px; z-index: 5; border-right: 2px solid #adb5bd !important; }
+
+/* 데이터 셀(td) 배경색 (투명화 방지) */
+.statsTable td.stickyCol1,
+.statsTable td.stickyCol2,
+.statsTable td.stickyCol3,
+.statsTable td.stickyCol4 {
+    background-color: #fff;
+}
+
+/* 좌상단 모서리 (헤더이면서 틀고정인 부분은 위로 제일 떠있어야 함) */
+.statsTable thead th.stickyCol1,
+.statsTable thead th.stickyCol2,
+.statsTable thead th.stickyCol3,
+.statsTable thead th.stickyCol4 {
+    z-index: 20;
+    background-color: #e9ecef;
+}
+
+.present {
+    color: #4caf50;
+    font-weight: bold;
+}
+.absent {
+    color: #ccc;
+}
+
+/* 엑셀 다운로드 버튼 스타일 */
+.excelBtn {
+    padding: 6px 12px;
+    background-color: #217346;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.2s ease;
+}
+
+.excelBtn:hover {
+    background-color: #1a5c38;
+}

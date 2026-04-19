@@ -51,8 +51,25 @@ export const paths = {
         api: ``
     },
 
+    // - 관리자 (Administrator) ---
     administrator: {
         url: ADMINISTRATOR_BASE,
+        api: ``
+    },
+    cumulativeStatistics: {
+        url: `/${ADMINISTRATOR_BASE}/cumulative-statistics`,
+        api: ``
+    },
+    totalTeacherReports: {
+        url: `/${ADMINISTRATOR_BASE}/total-teacher-reports`,
+        api: ``
+    },
+    studentDetail: {
+        url: `/${ADMINISTRATOR_BASE}/student-detail`,
+        api: ``
+    },
+    editHistory: {
+        url: `/${ADMINISTRATOR_BASE}/edit-history`,
         api: ``
     }
 } as const;
