@@ -6,7 +6,7 @@ import { StudentAttendanceRow } from "../../components/attendance/StudentAttenda
 import { DateSelector } from "../../components/common/DateSelector.tsx";
 import { getMostRecentSunday } from "../../util/dateUtils.tsx";
 import BackButton from "../../components/common/BackButton.tsx";
-import './ClassroomSheet.module.css';
+import './ClassroomSheet.css';
 import {ClassroomCumulativeStatisticsModal} from "../../components/attendance/ClassroomCumulativeStatisticsModal.tsx";
 
 const ClassroomSheet = () => {
@@ -40,7 +40,7 @@ const ClassroomSheet = () => {
                 <BackButton />
                 <button
                     className="stats-button"
-                    onPointerUp={() => setIsStatsModalOpen(true)}
+                    onClick={() => setIsStatsModalOpen(true)}
                 >
                     누적 통계
                 </button>
@@ -104,7 +104,7 @@ const ClassroomSheet = () => {
                 />
             )}
 
-            <button className="submit-btn" onPointerUp={submitAttendance}>
+            <button className="submit-btn" onClick={submitAttendance}>
                 제출하기
             </button>
 

@@ -166,15 +166,18 @@ const StatisticsPage = () => {
                                 (남 {overallStats.male} / 여 {overallStats.female})
                             </span>
                             {overallStats.attendance} / {overallStats.total}
+                            <span className={styles.overallPercent}>
+                                {renderPercent(overallStats.attendance, overallStats.total)}
+                            </span>
                         </span>
                     </div>
 
                     {/* 4. 새친구 서브 통계 (전체 통계 바로 아래 붙음) */}
                     {newFriendStats.total > 0 && (
                         <div className={styles.newFriendSubRow}>
-                                <span className={styles.newFriendText}>
-                                    (+ 새친구 {newFriendStats.attendance} / {newFriendStats.total})
-                                </span>
+                            <span className={styles.newFriendText}>
+                                (+ 새친구 {newFriendStats.attendance} / {newFriendStats.total})
+                            </span>
                         </div>
                     )}
                 </div>

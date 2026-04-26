@@ -15,7 +15,7 @@ const WorshipTeamSelect = () => {
                     <button
                         key={teamName}
                         className="selection-card"
-                        onPointerUp={() => navigate(generatePath(paths.worshipTeamSheet.url, {teamName: teamName}))}
+                        onClick={() => navigate(generatePath(paths.worshipTeamSheet.url, {teamName: teamName}))}
                     >
                         {teamName}
                     </button>

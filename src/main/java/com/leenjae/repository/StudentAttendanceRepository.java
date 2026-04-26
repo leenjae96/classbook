@@ -56,8 +56,8 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
                 SELECT new com.leenjae.dto.StatisticsDto$StudentStats(
                     c.grade,
                     c.classNo,
-                    SUM(CASE WHEN s.gender = true THEN 1L ELSE 0L END),
-                    SUM(CASE WHEN s.gender = false THEN 1L ELSE 0L END),
+                    SUM(CASE WHEN s.gender = true AND sa.status = true THEN 1L ELSE 0L END),
+                    SUM(CASE WHEN s.gender = false AND sa.status = true THEN 1L ELSE 0L END),
                     COALESCE(SUM(CASE WHEN sa.status = true THEN 1L ELSE 0L END), 0L),
                     COUNT(s.id),
                     CASE WHEN COUNT(sa.id) > 0 THEN true ELSE false END

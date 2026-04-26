@@ -3,7 +3,6 @@
 .container {
     display: flex;
     flex-direction: column;
-    gap: 15px;
 }
 
 .loading {
@@ -94,11 +93,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #f1f5f9; /* 연한 회색 */
+    background-color: #f1f5f9;
     padding: 14px 20px;
-    border-radius: 10px 10px 0 0; /* 아래쪽 테두리는 깎지 않음 (새친구와 붙이기 위해) */
+    border-radius: 10px 10px 0 0; /* 위쪽만 둥글게 */
     border: 1px solid #e2e8f0;
-    margin-top: 10px;
+    margin-top: 10px; /* 여기서 위쪽(반 리스트)과는 벌리되 */
+    margin-bottom: 0; /* 아래쪽 새친구와는 밀착 */
 }
 
 .overallTitle {
@@ -135,12 +135,13 @@
 
 .newFriendSubRow {
     display: flex;
-    justify-content: flex-end; /* 우측 정렬 */
-    background-color: #fff7ed; /* 매우 연한 주황색 */
+    justify-content: flex-end;
+    background-color: #fff7ed;
     padding: 8px 20px;
-    border-radius: 0 0 10px 10px; /* 위쪽은 깎지 않고 아래만 깎음 */
+    border-radius: 0 0 10px 10px; /* 아래쪽만 둥글게 */
     border: 1px solid #ffedd5;
-    border-top: none; /* 전체 통계 행과 겹치는 선 제거 */
+    border-top: none; /* 전체 박스와의 경계선 중복 제거 */
+    margin-top: 0; /* 여백을 0으로 강제 */
 }
 
 .newFriendText {
