@@ -2,6 +2,7 @@ package com.leenjae.repository;
 
 import com.leenjae.domain.StudentAttendance;
 import com.leenjae.dto.AdminDto;
+import com.leenjae.dto.AttendanceDto;
 import com.leenjae.dto.StatisticsDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -55,6 +56,8 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
                 SELECT new com.leenjae.dto.StatisticsDto$StudentStats(
                     c.grade,
                     c.classNo,
+                    SUM(CASE WHEN s.gender = true THEN 1L ELSE 0L END),
+                    SUM(CASE WHEN s.gender = false THEN 1L ELSE 0L END),
                     COALESCE(SUM(CASE WHEN sa.status = true THEN 1L ELSE 0L END), 0L),
                     COUNT(s.id),
                     CASE WHEN COUNT(sa.id) > 0 THEN true ELSE false END
@@ -82,7 +85,26 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
     StatisticsDto.NewFriendStats getNewFriendStatsByDate(@Param("date") LocalDate date);
 
     @Query("""
-                SELECT new com.leenjae.dto.AdminDto$RawCumulativeStats(
+                SELECT new com.leenjae.dto.AttendanceDto$RawCumulativeStats(
+                    s.id, s.status, c.grade, c.classNo, s.name, sa.date
+                )
+                FROM Student s
+                LEFT JOIN s.classroom c
+                LEFT JOIN StudentAttendance sa ON 
+                            sa.student = s AND 
+                            sa.status = true AND 
+                            sa.date >= :startDate AND
+                            sa.date <= :endDate
+                ORDER BY s.status ASC, c.grade ASC, CAST(c.classNo AS int) ASC, s.name ASC
+            """)
+    List<AttendanceDto.RawCumulativeStats> getRawCumulativeStats(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+
+    @Query("""
+                SELECT new com.leenjae.dto.AttendanceDto$RawCumulativeStats(
                     s.id, s.status, c.grade, c.classNo, s.name, sa.date
                 )
                 FROM Student s
@@ -92,12 +114,14 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
                             sa.status = true AND 
                             sa.date >= :startDate AND
                             sa.date <= :endDate
+                WHERE c.grade = :grade AND c.classNo = :classNo AND s.status != 3
                 ORDER BY s.status ASC, c.grade ASC, CAST(c.classNo AS int) ASC, s.name ASC
             """)
-    List<AdminDto.RawCumulativeStats> getRawCumulativeStats(
+    List<AttendanceDto.RawCumulativeStats> getRawCumulativeStatsByClassroom(
+            @Param("grade") Integer grade,
+            @Param("classNo") String classNo,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
-
 
 }

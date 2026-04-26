@@ -62,12 +62,10 @@ const NewFriend = () => {
                 </button>
             </div>
 
-            {/* ✨ 교체된 날짜 선택기 UI */}
             <DateSelector
                 selectedDate={selectedDate}
                 onChange={setSelectedDate}
             />
-
             <div className="student-list">
                 {studentAttendances.map((studentCheck) => (
                     <StudentAttendanceRow

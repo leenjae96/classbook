@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ public class AttendanceService {
     private final ClassroomRepository classroomRepository;
     private final StudentRepository studentRepository;
     private final StudentAttendanceRepository studentAttendanceRepository;
+    private final StudentHistoryRepository studentHistoryRepository;
     private final TeacherRepository teacherRepository;
     private final TeacherReportRepository teacherReportRepository;
     private final TeacherAttendanceRepository teacherAttendanceRepository;
@@ -327,16 +329,45 @@ public class AttendanceService {
     }
 
     @Transactional
-    public void updateStudent(StudentDto.Info info) {
-        log.info(info.toString());
-        Student existingData = studentRepository.findById(info.id())
+    public void updateNewFriend(AttendanceDto.EditStudentInfo info) {
+        Student existingStudent = studentRepository.findById(info.id())
                 .orElseThrow(() -> new IllegalArgumentException("해당 ID의 학생을 찾을 수 없습니다: " + info.id()));
         Classroom classroom = null;
         if (info.classroomId() != null) {
             classroom = classroomRepository.findById(info.classroomId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 classroomId과 매칭되는 classroom 정보가 없습니다. :/ " + info.classroomId()));
         }
-        existingData.update(
+
+        Integer oldStatus = existingStudent.getStatus();
+        Integer newStatus = info.status();
+        // 새친구에서 등반한 경우
+        if (oldStatus == Status.NEW.getCode() && newStatus == Status.NORMAL.getCode()) {
+            studentHistoryRepository.save(
+                    StudentHistory.builder()
+                            .student(existingStudent)
+                            .classroom(existingStudent.getClassroom())
+                            .date(info.promotedAt())
+                            .preStatus(oldStatus)
+                            .postStatus(newStatus)
+                            .comments("등반")
+                            .build()
+            );
+        }
+        // 새친구 등반을 제외한 모든 경우(admin 요청)
+        else {
+            studentHistoryRepository.save(
+                    StudentHistory.builder()
+                            .student(existingStudent)
+                            .classroom(existingStudent.getClassroom())
+                            .date(info.promotedAt())
+                            .preStatus(oldStatus)
+                            .postStatus(newStatus)
+                            .comments(info.comments())
+                            .build()
+            );
+        }
+
+        existingStudent.update(
                 info.gender(),
                 info.school(),
                 info.phone(),
@@ -362,9 +393,9 @@ public class AttendanceService {
         Classroom c = s.getClassroom();
         return new StudentDto.Info(
                 s.getId(),
-                c.getGrade(),
-                c.getClassNo(),
-                c.getId(),
+                c == null ? null : c.getGrade(),
+                c == null ? null : c.getClassNo(),
+                c == null ? null : c.getId(),
                 s.getName(),
                 s.getGender(),
                 s.getSchool(),
@@ -377,5 +408,57 @@ public class AttendanceService {
                 s.getPromotedAt(),
                 s.getRemark()
         );
+    }
+
+    public AttendanceDto.CumulativeSheet getCumulativeStatistics(LocalDate startDate, LocalDate endDate, Integer grade, String classNo) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+        List<AttendanceDto.RawCumulativeStats> rawData;
+
+        // 1. 조건에 따라 DB에서 데이터 퍼오기
+        if (grade == null || classNo == null) {
+            // 관리자가 호출한 경우: 전체 조회
+            rawData = studentAttendanceRepository.getRawCumulativeStats(startDate, endDate);
+        } else {
+            // 선생님이 호출한 경우: 특정 반만 조회
+            rawData = studentAttendanceRepository.getRawCumulativeStatsByClassroom(grade, classNo, startDate, endDate);
+        }
+        // 전체 날짜 중에서 null이 아닌 것만 'MM/dd' 포맷으로 추출 후 중복 제거 & 정렬 (headerDates)
+        List<String> headerDates = rawData.stream()
+                .map(AttendanceDto.RawCumulativeStats::attendanceDate)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .map(date -> date.format(formatter))
+                .toList();
+
+        // 학생 ID 기준으로 데이터 그룹핑 (LinkedHashMap을 써서 Repository의 정렬 순서 유지)
+        Map<Long, List<AttendanceDto.RawCumulativeStats>> groupedByStudent =
+                rawData.stream()
+                        .collect(Collectors.groupingBy(
+                                AttendanceDto.RawCumulativeStats::studentId,
+                                LinkedHashMap::new,
+                                Collectors.toList()
+                        ));
+
+        // 프론트엔드용 학생 리스트 조립
+        List<AttendanceDto.StudentAttendanceSummary> students =
+                groupedByStudent.values().stream()
+                        .map(list -> {
+                            AttendanceDto.RawCumulativeStats first = list.getFirst(); // 학생 기본 정보는 첫 번째 row에서 추출
+
+                            // 출석한 날짜만 'MM/dd' 포맷으로 추출 (결석/미출석은 아예 안 담김)
+                            List<String> attendances =
+                                    list.stream()
+                                            .map(AttendanceDto.RawCumulativeStats::attendanceDate)
+                                            .filter(Objects::nonNull)
+                                            .map(date -> date.format(formatter))
+                                            .toList();
+
+                            return new AttendanceDto.StudentAttendanceSummary(
+                                    first.studentStatus(), first.grade(), first.classNo(), first.name(), attendances
+                            );
+                        })
+                        .toList();
+        return new AttendanceDto.CumulativeSheet(headerDates, students);
     }
 }

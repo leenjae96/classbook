@@ -102,7 +102,7 @@ const WorshipTeamSheet = () => {
 
             <button
                 className="submit-btn"
-                onClick={submitAttendance}
+                onPointerUp={submitAttendance}
             >
                 제출하기
             </button>

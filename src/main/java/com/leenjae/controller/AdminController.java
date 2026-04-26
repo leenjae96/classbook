@@ -1,15 +1,14 @@
 package com.leenjae.controller;
 
 import com.leenjae.dto.AdminDto;
+import com.leenjae.dto.AttendanceDto;
 import com.leenjae.dto.StudentDto;
 import com.leenjae.service.AdminService;
+import com.leenjae.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,13 +19,16 @@ import java.util.List;
 @RequestMapping("/api/administrator")
 public class AdminController {
     private final AdminService adminService;
+    private final AttendanceService attendanceService;
 
     @GetMapping(value = "/cumulative-stats")
-    public AdminDto.CumulativeSheet getCumulativeStats(
+    public ResponseEntity<AttendanceDto.CumulativeSheet> getCumulativeStats(
             @RequestParam LocalDate startDate,
             @RequestParam LocalDate endDate
     ) {
-        return adminService.getCumulativeStatistics(startDate, endDate);
+        return ResponseEntity.ok(
+                attendanceService.getCumulativeStatistics(startDate, endDate, null, null)
+        );
     }
 
     @GetMapping(value = "/students")
@@ -38,5 +40,30 @@ public class AdminController {
     public ResponseEntity<List<AdminDto.TotalReportResponse>> getTotalReports(
             @RequestParam LocalDate date) {
         return ResponseEntity.ok(adminService.getTotalReports(date));
+    }
+
+    //TODO: 관리자 update
+    @PutMapping("/students")
+    public ResponseEntity<Void> updateStudent(
+            @RequestBody AttendanceDto.EditStudentInfo info
+    ) {
+        attendanceService.updateNewFriend(info);
+        return ResponseEntity.ok().build();
+    }
+
+    //@DeleteMapping("/students")
+    //public ResponseEntity<Void> saveStudent(
+    //        @RequestParam Long studentId
+    //) {
+    //    attendanceService.deleteStudent(studentId);
+    //    return ResponseEntity.ok().build();
+    //}
+
+    @GetMapping("/histories")
+    public ResponseEntity<AdminDto.HistoryResponse> getHistories(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate
+    ) {
+        return ResponseEntity.ok(adminService.getHistories(startDate, endDate));
     }
 }

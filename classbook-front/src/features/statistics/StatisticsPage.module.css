@@ -90,16 +90,15 @@
     font-weight: 600;
 }
 
-/* 중등부 전체 Row */
 .overallRow {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #eff6ff;
-    padding: 16px 20px;
-    border-radius: 15px;
+    background-color: #f1f5f9; /* 연한 회색 */
+    padding: 14px 20px;
+    border-radius: 10px 10px 0 0; /* 아래쪽 테두리는 깎지 않음 (새친구와 붙이기 위해) */
+    border: 1px solid #e2e8f0;
     margin-top: 10px;
-    border: 2px solid #bfdbfe;
 }
 
 .overallTitle {
@@ -109,7 +108,7 @@
 }
 
 .overallStats {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     color: #1e3a8a;
 }
@@ -119,4 +118,33 @@
     margin-left: 12px;
     font-size: 16px;
     font-weight: 800;
+}
+
+.newFriendRow {
+    background-color: #fff3e0 !important;
+    border: 1px solid #ffe0b2 !important;
+    margin-top: 10px; /* 위쪽 전체 박스와 살짝 여백 주기 */
+}
+
+.genderStats {
+    font-size: 13px;
+    color: #64748b;
+    margin-right: 8px;
+    font-weight: normal;
+}
+
+.newFriendSubRow {
+    display: flex;
+    justify-content: flex-end; /* 우측 정렬 */
+    background-color: #fff7ed; /* 매우 연한 주황색 */
+    padding: 8px 20px;
+    border-radius: 0 0 10px 10px; /* 위쪽은 깎지 않고 아래만 깎음 */
+    border: 1px solid #ffedd5;
+    border-top: none; /* 전체 통계 행과 겹치는 선 제거 */
+}
+
+.newFriendText {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ea580c; /* 주황색 글씨 */
 }

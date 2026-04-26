@@ -427,6 +427,35 @@ h4 {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
+/* ClassroomSheet.module.css 내부에 추가 */
+
+.header-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+/* BackButton과 완벽히 동일한 디자인 + 패딩만 살짝 추가 */
+.stats-button {
+    font-size: 13px;
+    color: #334155;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    background: #eff6ff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.stats-button:hover {
+    background-color: #f8fafc; /* 마우스 올렸을 때 살짝 변하는 피드백 */
+}
+
 /* --- 공통 날짜 선택기 스타일 --- */
 .date-selector-container {
     display: flex;

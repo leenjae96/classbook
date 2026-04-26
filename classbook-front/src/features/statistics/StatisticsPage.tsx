@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { apiFetch } from "../../hooks/api.ts";
-import { DateSelector } from "../../components/common/DateSelector.tsx";
-import { getMostRecentSunday } from "../../util/dateUtils.tsx";
+import {useEffect, useMemo, useState} from 'react';
+import {apiFetch} from "../../hooks/api.ts";
+import {DateSelector} from "../../components/common/DateSelector.tsx";
+import {getMostRecentSunday} from "../../util/dateUtils.tsx";
 import BackButton from "../../components/common/BackButton.tsx";
 import styles from './StatisticsPage.module.css'; // CSS 모듈 임포트
 
@@ -10,6 +10,8 @@ interface StudentStats {
     grade: number;
     classNo: string;
     attendance: number;
+    male: number;
+    female: number;
     total: number;
     date: string;
     isSummited: boolean;
@@ -30,7 +32,7 @@ const StatisticsPage = () => {
 
     // 2. 상태 분리: 반별 통계 배열과 새친구 객체
     const [classStats, setClassStats] = useState<StudentStats[]>([]);
-    const [newFriendStats, setNewFriendStats] = useState<NewFriendStats>({ attendance: 0, total: 0 });
+    const [newFriendStats, setNewFriendStats] = useState<NewFriendStats>({attendance: 0, total: 0});
     const [loading, setLoading] = useState<boolean>(false);
 
     const fetchData = async () => {
@@ -41,11 +43,11 @@ const StatisticsPage = () => {
 
             // 각각의 상태에 나누어 저장
             setClassStats(data.classStats || []);
-            setNewFriendStats(data.newFriendStats || { attendance: 0, total: 0 });
+            setNewFriendStats(data.newFriendStats || {attendance: 0, total: 0});
         } catch (error) {
             console.error("통계 데이터를 불러오는데 실패했습니다.", error);
             setClassStats([]);
-            setNewFriendStats({ attendance: 0, total: 0 });
+            setNewFriendStats({attendance: 0, total: 0});
         } finally {
             setLoading(false);
         }
@@ -67,10 +69,12 @@ const StatisticsPage = () => {
 
     // 일반 학생 전체 총계 계산
     const overallStats = classStats.reduce((acc, current) => {
+        acc.male += current.male;
+        acc.female += current.female;
         acc.attendance += current.attendance;
         acc.total += current.total;
         return acc;
-    }, { attendance: 0, total: 0 });
+    }, {attendance: 0, total: 0, male: 0, female: 0});
 
     const renderPercent = (att: number, tot: number) => {
         if (tot === 0) return '0%';
@@ -90,11 +94,11 @@ const StatisticsPage = () => {
             acc.attendance += curr.attendance;
             acc.total += curr.total;
             return acc;
-        }, { attendance: 0, total: 0 });
+        }, {attendance: 0, total: 0});
     };
 
     return (
-        <div className="content" style={{ position: 'relative', paddingBottom: '40px' }}>
+        <div className="content" style={{position: 'relative', paddingBottom: '40px'}}>
             <BackButton/>
             <h4>출석 통계</h4>
 
@@ -114,7 +118,7 @@ const StatisticsPage = () => {
                         const subTotal = getSubTotal(stats);
 
                         return (
-                            <div key={grade} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                            <div key={grade} style={{display: 'flex', flexDirection: 'column', gap: '5px'}}>
                                 {/* 학년 전체 소계 Row */}
                                 <div className={styles.gradeTotalRow}>
                                     <span className={styles.gradeTitle}>
@@ -133,13 +137,17 @@ const StatisticsPage = () => {
                                     const isMissing = stat.attendance === 0;
 
                                     return (
-                                        <div key={idx} className={`${styles.classRow} ${isMissing ? styles.classRowMissing : ''}`}>
-                                            <span className={`${styles.className} ${isMissing ? styles.classNameMissing : ''}`}>
+                                        <div key={idx}
+                                             className={`${styles.classRow} ${isMissing ? styles.classRowMissing : ''}`}>
+                                            <span
+                                                className={`${styles.className} ${isMissing ? styles.classNameMissing : ''}`}>
                                                 {getClassName(grade, stat.classNo)}
                                             </span>
-                                            <span className={`${styles.classStats} ${isMissing ? styles.classStatsMissing : ''}`}>
+                                            <span
+                                                className={`${styles.classStats} ${isMissing ? styles.classStatsMissing : ''}`}>
                                                 {stat.attendance}/{stat.total}
-                                                <span className={`${styles.percent} ${isMissing ? styles.classNameMissing : styles.percentAccent}`}>
+                                                <span
+                                                    className={`${styles.percent} ${isMissing ? styles.classNameMissing : styles.percentAccent}`}>
                                                     {renderPercent(stat.attendance, stat.total)}
                                                 </span>
                                             </span>
@@ -150,22 +158,25 @@ const StatisticsPage = () => {
                         );
                     })}
 
-                    {/* 3. 제일 하단: 전체 카운트 (여기에만 새친구 데이터 병합 렌더링) */}
+                    {/* 3. 제일 하단: 전체 통계 */}
                     <div className={styles.overallRow}>
-                        <span className={styles.overallTitle}>중등부 전체</span>
+                        <span className={styles.overallTitle}>전체</span>
                         <span className={styles.overallStats}>
-                            {/* 새친구가 1명이라도 있을 때만 텍스트 표시 */}
-                            {newFriendStats.total > 0 && (
-                                <span className={styles.newFriendText}>
-                                    (새친구 {newFriendStats.attendance}/{newFriendStats.total}+)
-                                </span>
-                            )}
-                            {overallStats.attendance} / {overallStats.total}
-                            <span className={styles.overallPercent}>
-                                {renderPercent(overallStats.attendance, overallStats.total)}
+                            <span className={styles.genderStats}>
+                                (남 {overallStats.male} / 여 {overallStats.female})
                             </span>
+                            {overallStats.attendance} / {overallStats.total}
                         </span>
                     </div>
+
+                    {/* 4. 새친구 서브 통계 (전체 통계 바로 아래 붙음) */}
+                    {newFriendStats.total > 0 && (
+                        <div className={styles.newFriendSubRow}>
+                                <span className={styles.newFriendText}>
+                                    (+ 새친구 {newFriendStats.attendance} / {newFriendStats.total})
+                                </span>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

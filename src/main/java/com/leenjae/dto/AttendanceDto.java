@@ -3,6 +3,7 @@ package com.leenjae.dto;
 import lombok.Builder;
 import lombok.ToString;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @ToString
@@ -16,13 +17,6 @@ public class AttendanceDto {
             Long teacherId,
             String teacherName
     ) {}
-
-    public record AdministrativeSummary(
-            Integer roleCode,
-            Long teacherId
-    ) {}
-
-    public record newFriend() {}
 
     @Builder
     public record Sheet(
@@ -56,5 +50,46 @@ public class AttendanceDto {
             String teacherName,
             Boolean status,
             String comments
+    ) {}
+
+    public record EditStudentInfo(
+            Long id,
+            Integer grade,
+            String classNo,
+            Long classroomId,
+            String name,
+            Boolean gender,
+            String school,
+            String phone,
+            String parentPhone,
+            String address,
+            LocalDate birthday,
+            Integer status,
+            LocalDate registeredAt,
+            LocalDate promotedAt,
+            String remark,
+            String comments
+    ) {}
+
+    public record RawCumulativeStats(
+            Long studentId,
+            Integer studentStatus,
+            Integer grade,
+            String classNo,
+            String name,
+            LocalDate attendanceDate
+    ) {}
+
+    public record CumulativeSheet(
+            List<String> headerDates,
+            List<StudentAttendanceSummary> students
+    ) {}
+
+    public record StudentAttendanceSummary(
+            Integer status,
+            Integer grade,
+            String classNo,
+            String name,
+            List<String> attendances // ["01/04", "01/11", ...]
     ) {}
 }
