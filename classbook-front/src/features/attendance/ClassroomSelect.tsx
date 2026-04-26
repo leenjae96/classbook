@@ -42,7 +42,7 @@ const ClassroomSelect = () => {
                         <div
                             key={classroom.id}
                             className="selection-card"
-                            onPointerUp={() => navigate(generatePath(paths.classroomSheet.url, {
+                            onClick={() => navigate(generatePath(paths.classroomSheet.url, {
                                 grade: classroom.grade.toString(),
                                 classNo: classroom.classNo
                             }))}

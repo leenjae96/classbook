@@ -15,7 +15,7 @@ export const TeacherAttendanceRow= ({teacherAttendance, onToggle, onCommentChang
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', position: 'relative' }}>
             {/* 학생 버튼 */}
             <button
-                onPointerUp={handlePointerUp}
+                onClick={handlePointerUp}
                 style={{
                     flexBasis: '30%',
                     minWidth: '90px',

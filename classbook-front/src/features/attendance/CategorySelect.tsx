@@ -16,20 +16,20 @@ const CategorySelect = () => {
                     <button
                         key={grade}
                         className="selection-card"
-                        onPointerUp={() => navigate(generatePath(paths.classroomSelect.url, { grade: grade.toString() }))}
+                        onClick={() => navigate(generatePath(paths.classroomSelect.url, { grade: grade.toString() }))}
                     >
                         {grade === 0 ? '1부 예배' : `${grade}학년`}
                     </button>
                 ))}
                 <button
                     className="selection-card"
-                    onPointerUp={() => navigate(paths.administrativeTeacherSelect.url)}
+                    onClick={() => navigate(paths.administrativeTeacherSelect.url)}
                 >
                     반목 외 교사
                 </button>
                 <button
                     className="selection-card"
-                    onPointerUp={() => navigate(paths.newfriend.url)}
+                    onClick={() => navigate(paths.newfriend.url)}
                 >
                     새친구🌱
                 </button>
@@ -39,7 +39,7 @@ const CategorySelect = () => {
             <div className="selection-grid">
                 <button
                     className="selection-card"
-                    onPointerUp={() => navigate(paths.worshipTeamSelect.url)}
+                    onClick={() => navigate(paths.worshipTeamSelect.url)}
                 >
                     찬양팀🎵
                 </button>
