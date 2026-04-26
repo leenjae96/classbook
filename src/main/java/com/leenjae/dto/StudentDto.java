@@ -1,6 +1,5 @@
 package com.leenjae.dto;
 
-import lombok.Builder;
 import lombok.ToString;
 
 import java.time.LocalDate;
@@ -38,4 +37,5 @@ public class StudentDto {
             String remark
     ) {
     }
+    //TODO : response 객체 따로 dto 따로?
 }

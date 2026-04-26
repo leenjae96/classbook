@@ -32,6 +32,8 @@ public class StatisticsDto {
     public record StudentStats(
             Integer grade,
             String classNo,
+            Long male,
+            Long female,
             Long attendance,
             Long total,
             Boolean isSummited

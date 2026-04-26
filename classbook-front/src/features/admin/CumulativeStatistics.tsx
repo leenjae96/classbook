@@ -7,18 +7,18 @@ import * as XLSX from 'xlsx-js-style';
 
 interface StudentAttendanceSummary {
     status: number;
-    grade: number;
-    classNo: string;
+    grade: number | null;
+    classNo: string | null;
     name: string;
     attendances: string[];
 }
 
-interface CumSheet {
+interface CumulativeSheet {
     headerDates: string[];
     students: StudentAttendanceSummary[];
 }
 
-// 병합 정보가 추가된 확장 타입
+// 병합 정보가 추가된 확장 타입 TODO: 왜만든거지?
 interface ProcessedStudent extends StudentAttendanceSummary {
     rowSpans: {
         category: number;
@@ -29,7 +29,7 @@ interface ProcessedStudent extends StudentAttendanceSummary {
 
 const CumulativeStatistics = () => {
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-    const [sheetData, setSheetData] = useState<CumSheet | null>(null);
+    const [sheetData, setSheetData] = useState<CumulativeSheet | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const tableRef = useRef<HTMLTableElement>(null);
 
@@ -40,7 +40,7 @@ const CumulativeStatistics = () => {
             const currentYear = new Date().getFullYear();
             const endDate = selectedYear === currentYear ? getMostRecentSunday() : `${selectedYear}-12-31`;
 
-            const data: CumSheet = await apiFetch(`/api/administrator/cumulative-stats?startDate=${startDate}&endDate=${endDate}`);
+            const data: CumulativeSheet = await apiFetch(`/api/administrator/cumulative-stats?startDate=${startDate}&endDate=${endDate}`);
             setSheetData(data);
         } catch (error) {
             console.error("누적 통계 로드 실패:", error);
@@ -53,16 +53,20 @@ const CumulativeStatistics = () => {
         fetchStats();
     }, [selectedYear]);
 
-    // ✨ 텍스트 축약 (폭을 줄이기 위해 한/두 글자로 단축)
+    // 텍스트 축약 (폭을 줄이기 위해 한/두 글자로 단축)
     const getStatusText = (status: number) => {
         if (status === 0) return '새친구';
         if (status === 3) return '별분';
         return ''; // 일반 학생은 공백 유지 (공간 절약)
     };
-    const getGradeText = (grade: number) => grade === 0 ? '1부' : `${grade}`; // "1학년" -> "1"
-    const getClassText = (grade: number, classNo: string) => {
-        if (grade === 0) return classNo === '0' ? '여' : '남'; // "여자반" -> "여"
-        return `${classNo}`; // "1반" -> "1"
+    const getGradeText = (grade: number | null) => {
+        if (grade === null) return '-';
+        return grade === 0 ? '1부' : `${grade}`;
+    }
+    const getClassText = (grade: number | null, classNo: string | null) => {
+        if (grade === null || classNo === null) return '-';
+        if (grade === 0) return classNo === '0' ? '여' : '남';
+        return `${classNo}`;
     };
 
     // 2. 엑셀 다운로드 실행 함수

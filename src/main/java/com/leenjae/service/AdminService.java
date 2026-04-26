@@ -15,9 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -29,50 +27,6 @@ public class AdminService {
     private final StudentRepository studentRepository;
     private final StudentAttendanceRepository studentAttendanceRepository;
     private final ClassroomRepository classroomRepository;
-
-    public AdminDto.CumulativeSheet getCumulativeStatistics(LocalDate startDate, LocalDate endDate) {
-        List<AdminDto.RawCumulativeStats> rawData = studentAttendanceRepository.getRawCumulativeStats(startDate, endDate);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
-
-        // 전체 날짜 중에서 null이 아닌 것만 'MM/dd' 포맷으로 추출 후 중복 제거 & 정렬 (headerDates)
-        List<String> headerDates = rawData.stream()
-                .map(AdminDto.RawCumulativeStats::attendanceDate)
-                .filter(Objects::nonNull)
-                .distinct()
-                .sorted()
-                .map(date -> date.format(formatter))
-                .toList();
-
-        // 학생 ID 기준으로 데이터 그룹핑 (LinkedHashMap을 써서 Repository의 정렬 순서 유지)
-        Map<Long, List<AdminDto.RawCumulativeStats>> groupedByStudent =
-                rawData.stream()
-                        .collect(Collectors.groupingBy(
-                                AdminDto.RawCumulativeStats::studentId,
-                                LinkedHashMap::new,
-                                Collectors.toList()
-                        ));
-
-        // 프론트엔드용 학생 리스트 조립
-        List<AdminDto.StudentAttendanceSummary> students =
-                groupedByStudent.values().stream()
-                        .map(list -> {
-                            AdminDto.RawCumulativeStats first = list.get(0); // 학생 기본 정보는 첫 번째 row에서 추출
-
-                            // 출석한 날짜만 'MM/dd' 포맷으로 추출 (결석/미출석은 아예 안 담김)
-                            List<String> attendances =
-                                    list.stream()
-                                            .map(AdminDto.RawCumulativeStats::attendanceDate)
-                                            .filter(Objects::nonNull)
-                                            .map(date -> date.format(formatter))
-                                            .toList();
-
-                            return new AdminDto.StudentAttendanceSummary(
-                                    first.studentStatus(), first.grade(), first.classNo(), first.name(), attendances
-                            );
-                        })
-                        .toList();
-        return new AdminDto.CumulativeSheet(headerDates, students);
-    }
 
     public List<StudentDto.SummaryInfo> getStudentSummaryInfo() {
         return studentRepository.findAllStudentSummaryInfo();
@@ -139,4 +93,9 @@ public class AdminService {
                 .toList();
     }
 
+    public AdminDto.HistoryResponse getHistories(LocalDate startDate, LocalDate endDate) {
+
+
+        return null;
+    }
 }

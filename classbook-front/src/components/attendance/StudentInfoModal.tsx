@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react';
 import type {StudentInfo, ClassroomSummary} from '../../constants/types.tsx';
 import {apiFetch} from "../../hooks/api.ts";
-import styles from './StudentInfoModal.module.css'; // ✨ 모듈 CSS 임포트
+import styles from './StudentInfoModal.module.css';
 
 interface Props {
     isOpen: boolean;

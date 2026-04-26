@@ -87,21 +87,20 @@ public class AttendanceController {
     }
 
     @PutMapping("/new-friend")
-    public ResponseEntity<Void> promoteNewFriend(
-            @RequestBody StudentDto.Info info
+    public ResponseEntity<Void> updateNewFriend(
+            @RequestBody AttendanceDto.EditStudentInfo info
     ) {
-        attendanceService.updateStudent(info);
+        attendanceService.updateNewFriend(info);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/student")
-    public StudentDto.Info setStudent(
+    public StudentDto.Info getStudent(
             @RequestParam Long id
     ) {
         return attendanceService.getStudent(id);
     }
 
-    //LEE: 관리자 페이지용.
     @PostMapping("/student")
     public ResponseEntity<Void> registerStudent(
             @RequestBody StudentDto.Info info
@@ -110,18 +109,13 @@ public class AttendanceController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/student")
-    public ResponseEntity<Void> updateStudent(
-            @RequestBody StudentDto.Info info
-    ) {
-        attendanceService.updateStudent(info);
-        return ResponseEntity.ok().build();
-    }
-    @DeleteMapping("/student")
-    public ResponseEntity<Void> saveStudent(
-            @RequestParam Long studentId
-    ) {
-        attendanceService.deleteStudent(studentId);
-        return ResponseEntity.ok().build();
+    @GetMapping(value = "/cumulative-stats")
+    public AttendanceDto.CumulativeSheet getCumulativeStats(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate,
+            @RequestParam Integer grade,
+            @RequestParam String classNo
+            ) {
+        return attendanceService.getCumulativeStatistics(startDate, endDate, grade, classNo);
     }
 }

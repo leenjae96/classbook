@@ -8,7 +8,7 @@ public enum Status {
     NEW(0, "새친구"),
     NORMAL(1, "일반, 정상"),
     GRADUATED(2, "졸업"),
-    REMOVED(3, "제거, 별분"),
+    REMOVED(3, "별분"),
     ABSENCE(4, "휴직");
 
     @Getter

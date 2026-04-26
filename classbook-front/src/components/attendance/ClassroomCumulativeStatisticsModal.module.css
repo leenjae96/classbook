@@ -1,0 +1,70 @@
+
+.overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 95%; max-width: 900px;
+    height: 85vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;
+}
+.header h3 { margin: 0; font-size: 18px; color: #343a40; }
+
+.tableWrapper {
+    flex: 1; overflow: auto;
+    border: 1px solid #dee2e6; border-radius: 8px; background-color: #fff;
+}
+
+.statsTable { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+.statsTable th, .statsTable td {
+    padding: 10px 8px; border-right: 1px solid #e9ecef; border-bottom: 1px solid #e9ecef;
+    text-align: center; white-space: nowrap; font-size: 13px; background-color: #fff;
+}
+
+/* 상단/좌측 틀고정 */
+.statsTable thead th {
+    position: sticky; top: 0; background-color: #f8f9fa;
+    font-weight: 600; color: #495057; z-index: 10; border-bottom: 2px solid #adb5bd;
+}
+.stickyName {
+    position: sticky; left: 0; min-width: 70px; width: 70px;
+    font-weight: 600; color: #343a40; z-index: 5; border-right: 2px solid #adb5bd !important;
+}
+.statsTable thead th.stickyName { z-index: 20; background-color: #e9ecef; }
+
+/* 새친구 구분선 */
+.dividerRow td {
+    background-color: #fff3e0 !important; color: #e65100;
+    font-weight: bold; text-align: left; padding: 8px 15px;
+    position: sticky; left: 0; z-index: 6; /* 일반 행보다 살짝 위로 */
+}
+
+.present { color: #4caf50; font-weight: bold; }
+.absent { color: #ccc; }
+
+/* ✨ BackButton과 통일된 디자인의 선택박스 및 닫기 버튼 */
+.selectBox {
+    font-size: 13px; color: #334155; font-weight: 600;
+    border: 1px solid #e2e8f0; background: white; border-radius: 5px;
+    padding: 6px 10px; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.closeBtn {
+    font-size: 13px; color: #334155; font-weight: 600;
+    border: 1px solid #e2e8f0; background: white; border-radius: 5px;
+    padding: 6px 12px; cursor: pointer; transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.closeBtn:hover { background-color: #f8fafc; }
