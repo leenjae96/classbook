@@ -107,3 +107,20 @@
 .noReport td {
     color: #adb5bd;
 }
+
+.excelBtn {
+    padding: 6px 12px;
+    background-color: #217346;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.excelBtn:hover {
+    background-color: #1a5c38;
+}

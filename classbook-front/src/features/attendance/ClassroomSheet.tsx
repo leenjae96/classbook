@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { TeacherReportRow } from "../../components/attendance/TeacherReportRow.tsx";
 import { useAttendance } from "../../hooks/useAttendance.ts";
@@ -24,6 +24,20 @@ const ClassroomSheet = () => {
         apiEndpoint: `/api/attendances/sheet?grade=${grade}&classNo=${classNo}`,
         initialDate: getMostRecentSunday()
     });
+
+    // 날짜별 최초 로드 시점의 worship 값을 캡처 (사용자가 선택을 바꿔도 잠금 조건에 영향 없도록)
+    const [loadedWorship, setLoadedWorship] = useState<{ date: string; worship: number } | null>(null);
+    useEffect(() => {
+        if (teacherReport !== undefined && loadedWorship?.date !== selectedDate) {
+            setLoadedWorship({ date: selectedDate, worship: teacherReport.worship });
+        }
+    }, [teacherReport, selectedDate]);
+
+    const isLocked =
+        selectedDate < getMostRecentSunday() ||
+        (selectedDate === getMostRecentSunday() &&
+            loadedWorship?.date === selectedDate &&
+            loadedWorship.worship !== -1);
 
     const normalStudents = studentAttendances.filter(student => student.studentStatus !== 0);
     const newStudents = studentAttendances.filter(student => student.studentStatus === 0);
@@ -58,29 +72,28 @@ const ClassroomSheet = () => {
 
             <DateSelector selectedDate={selectedDate} onChange={setSelectedDate} />
 
-            <div className="student-list">
-                {normalStudents.map((studentCheck) => (
-                    <StudentAttendanceRow
-                        key={studentCheck.id}
-                        studentCheck={studentCheck}
-                        onToggle={toggleStudentAttendance}
-                        onCommentChange={updateStudentAttendanceComment}
-                    />
-                ))}
-            </div>
-
-            {newStudents.length > 0 && (
-                <>
-                    <hr className="section-divider" />
-                    <div className="summary-box new-friend">
-                        <div className="summary-left" style={{ color: '#f57c00' }}>🌱 새친구</div>
-                        <div className="summary-right">
-                            출석 <span className="new-present-count">{newPresentCount}</span>명
-                            <span className="separator">|</span> 총인원 {newTotalCount}명
-                        </div>
+            {isLocked ? (
+                <div style={{
+                    marginTop: '12px',
+                    padding: '30px 20px',
+                    backgroundColor: '#f1f3f5',
+                    borderRadius: '10px',
+                    border: '1px solid #dee2e6',
+                    textAlign: 'center',
+                    color: '#868e96',
+                    lineHeight: '1.8',
+                }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
+                        제출이 완료되었거나 날짜가 지났습니다.
                     </div>
+                    <div style={{ fontSize: '13px' }}>
+                        통계만 확인이 가능하며, 수정이 필요할 시에는 관리자에게 문의해주세요.
+                    </div>
+                </div>
+            ) : (
+                <>
                     <div className="student-list">
-                        {newStudents.map((studentCheck) => (
+                        {normalStudents.map((studentCheck) => (
                             <StudentAttendanceRow
                                 key={studentCheck.id}
                                 studentCheck={studentCheck}
@@ -89,24 +102,47 @@ const ClassroomSheet = () => {
                             />
                         ))}
                     </div>
+
+                    {newStudents.length > 0 && (
+                        <>
+                            <hr className="section-divider" />
+                            <div className="summary-box new-friend">
+                                <div className="summary-left" style={{ color: '#f57c00' }}>🌱 새친구</div>
+                                <div className="summary-right">
+                                    출석 <span className="new-present-count">{newPresentCount}</span>명
+                                    <span className="separator">|</span> 총인원 {newTotalCount}명
+                                </div>
+                            </div>
+                            <div className="student-list">
+                                {newStudents.map((studentCheck) => (
+                                    <StudentAttendanceRow
+                                        key={studentCheck.id}
+                                        studentCheck={studentCheck}
+                                        onToggle={toggleStudentAttendance}
+                                        onCommentChange={updateStudentAttendanceComment}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+
+                    <hr style={{ margin: '20px 0' }} />
+
+                    {teacherReport && (
+                        <TeacherReportRow
+                            teacher={teacherReport}
+                            onWorshipChange={handleWorshipChange}
+                            onOtnChange={handleOtnChange}
+                            onDawnPrayChange={handleDawnPrayChange}
+                            onCommentsChange={handleTeacherReportCommentChange}
+                        />
+                    )}
+
+                    <button className="submit-btn" onClick={submitAttendance}>
+                        제출하기
+                    </button>
                 </>
             )}
-
-            <hr style={{ margin: '20px 0' }} />
-
-            {teacherReport && (
-                <TeacherReportRow
-                    teacher={teacherReport}
-                    onWorshipChange={handleWorshipChange}
-                    onOtnChange={handleOtnChange}
-                    onDawnPrayChange={handleDawnPrayChange}
-                    onCommentsChange={handleTeacherReportCommentChange}
-                />
-            )}
-
-            <button className="submit-btn" onClick={submitAttendance}>
-                제출하기
-            </button>
 
             {/* 2. 모달 컴포넌트 마운트 */}
             <ClassroomCumulativeStatisticsModal
