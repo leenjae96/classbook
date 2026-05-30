@@ -1,0 +1,17 @@
+server:
+  port: 10000
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://localhost:3308/classbook
+    username: root
+    password: dkssud03
+  jpa:
+    open-in-view: true
+    hibernate:
+      ddl-auto: update # 로컬이니까 엔티티 바뀔 때마다 테이블 자동 수정
+    show-sql: true # 개발할 땐 쿼리가 보여야 편함
+    properties:
+      hibernate:
+        format_sql: true

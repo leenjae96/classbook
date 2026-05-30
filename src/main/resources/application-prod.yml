@@ -1,0 +1,14 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://classbook-db.c7mk0cy0c1xt.ap-northeast-2.rds.amazonaws.com:3306/classbook?allowPublicKeyRetrieval=true&useSSL=false
+    username: admin
+    password: dkssud03 # 실무에선 환경변수로 숨기지만, 일단 포트폴리오니 직관적으로 둡니다.
+  jpa:
+    open-in-view: false # 운영에서는 성능을 위해 보통 끕니다
+    hibernate:
+      ddl-auto: validate # ⭐️ 운영 DB 테이블을 실수로 날리지 않도록 업데이트를 막고 검증만 합니다.
+    show-sql: false

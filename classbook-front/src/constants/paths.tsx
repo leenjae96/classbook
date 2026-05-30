@@ -71,5 +71,9 @@ export const paths = {
     editHistory: {
         url: `/${ADMINISTRATOR_BASE}/edit-history`,
         api: ``
+    },
+    teacherWeeklyReport: {
+        url: `/${ADMINISTRATOR_BASE}/teacher-weekly-report`,
+        api: ``
     }
 } as const;

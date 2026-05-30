@@ -59,6 +59,21 @@ public class AdminController {
     //    return ResponseEntity.ok().build();
     //}
 
+    @GetMapping("/teacher-cumulative-stats")
+    public ResponseEntity<AttendanceDto.TeacherCumulativeSheet> getTeacherCumulativeStats(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate
+    ) {
+        return ResponseEntity.ok(attendanceService.getTeacherCumulativeStatistics(startDate, endDate));
+    }
+
+    @GetMapping("/teacher-weekly-report")
+    public ResponseEntity<List<AdminDto.TeacherWeeklyReportItem>> getTeacherWeeklyReport(
+            @RequestParam LocalDate date
+    ) {
+        return ResponseEntity.ok(adminService.getTeacherWeeklyReport(date));
+    }
+
     @GetMapping("/histories")
     public ResponseEntity<AdminDto.HistoryResponse> getHistories(
             @RequestParam LocalDate startDate,

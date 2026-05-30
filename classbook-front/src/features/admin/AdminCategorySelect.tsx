@@ -30,6 +30,12 @@ const AdminCategorySelect = () => {
                 </button>
                 <button
                     className="selection-card"
+                    onClick={()=>navigate(paths.teacherWeeklyReport.url)}
+                >
+                    선생님 주금새
+                </button>
+                <button
+                    className="selection-card"
                     onClick={()=>navigate(paths.editHistory.url)}
                 >
                     히스토리 열람
