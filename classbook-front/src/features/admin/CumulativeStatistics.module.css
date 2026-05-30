@@ -84,6 +84,51 @@
     color: #ccc;
 }
 
+.stickyTeacherName {
+    position: sticky;
+    left: 0;
+    min-width: 70px;
+    width: 70px;
+    z-index: 5;
+    border-right: 2px solid #adb5bd !important;
+}
+
+.statsTable thead th.stickyTeacherName {
+    z-index: 20;
+    background-color: #e9ecef;
+}
+
+.statsTable td.stickyTeacherName {
+    background-color: #fff;
+}
+
+.tabGroup {
+    display: flex;
+    gap: 4px;
+}
+
+.tabBtn {
+    padding: 6px 16px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    color: #495057;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.tabBtn:hover {
+    background-color: #e9ecef;
+}
+
+.tabBtnActive {
+    background-color: #4361ee;
+    color: white;
+    border-color: #4361ee;
+}
+
 /* 엑셀 다운로드 버튼 스타일 */
 .excelBtn {
     padding: 6px 12px;

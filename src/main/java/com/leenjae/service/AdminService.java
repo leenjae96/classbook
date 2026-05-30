@@ -3,6 +3,7 @@ package com.leenjae.service;
 import com.leenjae.domain.Classroom;
 import com.leenjae.domain.Teacher;
 import com.leenjae.domain.TeacherRoles;
+import com.leenjae.domain.TeacherReport;
 import com.leenjae.dto.AdminDto;
 import com.leenjae.dto.AttendanceDto;
 import com.leenjae.dto.StudentDto;
@@ -10,6 +11,7 @@ import com.leenjae.repository.ClassroomRepository;
 import com.leenjae.repository.StudentAttendanceRepository;
 import com.leenjae.repository.StudentRepository;
 import com.leenjae.repository.TeacherRepository;
+import com.leenjae.repository.TeacherReportRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class AdminService {
     private final AttendanceService attendanceService;
 
     private final TeacherRepository teacherRepository;
+    private final TeacherReportRepository teacherReportRepository;
     private final StudentRepository studentRepository;
     private final StudentAttendanceRepository studentAttendanceRepository;
     private final ClassroomRepository classroomRepository;
@@ -93,9 +96,26 @@ public class AdminService {
                 .toList();
     }
 
+    public List<AdminDto.TeacherWeeklyReportItem> getTeacherWeeklyReport(LocalDate date) {
+        return teacherRepository.findAll()
+                .stream()
+                .filter(t -> !t.getRoles().contains(TeacherRoles.PASTOR))
+                .sorted(Comparator.comparing(Teacher::getName))
+                .map(t -> {
+                    TeacherReport report = teacherReportRepository.findByTeacherIdAndDate(t.getId(), date);
+                    return new AdminDto.TeacherWeeklyReportItem(
+                            t.getName(),
+                            report != null ? report.getDate() : null,
+                            report != null ? report.getWorship() : null,
+                            report != null ? report.getOtn() : null,
+                            report != null ? report.getDawnPray() : null,
+                            report != null ? report.getComments() : null
+                    );
+                })
+                .toList();
+    }
+
     public AdminDto.HistoryResponse getHistories(LocalDate startDate, LocalDate endDate) {
-
-
         return null;
     }
 }

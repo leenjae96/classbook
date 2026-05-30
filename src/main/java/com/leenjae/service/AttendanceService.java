@@ -461,4 +461,35 @@ public class AttendanceService {
                         .toList();
         return new AttendanceDto.CumulativeSheet(headerDates, students);
     }
+
+    public AttendanceDto.TeacherCumulativeSheet getTeacherCumulativeStatistics(LocalDate startDate, LocalDate endDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+
+        List<TeacherAttendance> records = teacherAttendanceRepository.findByDateBetween(startDate, endDate);
+
+        List<String> headerDates = records.stream()
+                .map(r -> r.getDate().format(formatter))
+                .distinct()
+                .sorted()
+                .toList();
+
+        Map<String, List<TeacherAttendance>> byTeacher = records.stream()
+                .collect(Collectors.groupingBy(
+                        r -> r.getTeacher().getName(),
+                        LinkedHashMap::new,
+                        Collectors.toList()
+                ));
+
+        List<AttendanceDto.TeacherAttendanceSummary> teachers = byTeacher.entrySet().stream()
+                .map(e -> new AttendanceDto.TeacherAttendanceSummary(
+                        e.getKey(),
+                        e.getValue().stream()
+                                .filter(ta -> Boolean.TRUE.equals(ta.getStatus()))
+                                .map(ta -> ta.getDate().format(formatter))
+                                .toList()
+                ))
+                .toList();
+
+        return new AttendanceDto.TeacherCumulativeSheet(headerDates, teachers);
+    }
 }

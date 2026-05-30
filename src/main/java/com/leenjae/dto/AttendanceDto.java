@@ -85,6 +85,16 @@ public class AttendanceDto {
             List<StudentAttendanceSummary> students
     ) {}
 
+    public record TeacherCumulativeSheet(
+            List<String> headerDates,
+            List<TeacherAttendanceSummary> teachers
+    ) {}
+
+    public record TeacherAttendanceSummary(
+            String name,
+            List<String> attendances
+    ) {}
+
     public record StudentAttendanceSummary(
             Integer status,
             Integer grade,

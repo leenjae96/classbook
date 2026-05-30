@@ -1,6 +1,17 @@
 package com.leenjae.dto;
 
+import java.time.LocalDate;
+
 public class AdminDto {
+    public record TeacherWeeklyReportItem(
+            String name,
+            LocalDate date,
+            Integer worship,
+            Boolean otn,
+            Integer dawnPray,
+            String comments
+    ) {}
+
     public record TotalReportResponse(
             Integer grade,
             String classNo,
