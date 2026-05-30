@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiFetch } from '../../hooks/api.ts';
 import { getMostRecentSunday } from '../../util/dateUtils.tsx';
 import BackButton from '../../components/common/BackButton.tsx';
 import styles from './TeacherWeeklyReport.module.css';
+import * as XLSX from 'xlsx-js-style';
 
 interface TeacherWeeklyReportItem {
     name: string;
@@ -42,6 +43,7 @@ const TeacherWeeklyReport = () => {
     const [selectedDate, setSelectedDate] = useState<string>(getMostRecentSunday());
     const [reports, setReports] = useState<TeacherWeeklyReportItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const tableRef = useRef<HTMLTableElement>(null);
 
     const fetchReports = async () => {
         setLoading(true);
@@ -67,16 +69,34 @@ const TeacherWeeklyReport = () => {
 
     const isLatest = selectedDate >= getMostRecentSunday();
 
+    const handleDownloadExcel = () => {
+        if (!tableRef.current) return;
+        const wb = XLSX.utils.table_to_book(tableRef.current, { sheet: '주금새', raw: true });
+        const ws = wb.Sheets['주금새'];
+        for (const key in ws) {
+            if (key.startsWith('!')) continue;
+            if (ws[key]) {
+                ws[key].s = { alignment: { vertical: 'center', horizontal: 'center' } };
+            }
+        }
+        XLSX.writeFile(wb, `${selectedDate}_선생님주금새.xlsx`);
+    };
+
     return (
         <div className="content">
             <BackButton />
             <div className={styles.container}>
                 <div className={styles.headerControls}>
                     <h4>선생님 주금새</h4>
-                    <div className={styles.dateNav}>
-                        <button className={styles.navBtn} onClick={goPrev}>◀</button>
-                        <span className={styles.dateLabel}>{formatDate(selectedDate)} (주일)</span>
-                        <button className={styles.navBtn} onClick={goNext} disabled={isLatest}>▶</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className={styles.dateNav}>
+                            <button className={styles.navBtn} onClick={goPrev}>◀</button>
+                            <span className={styles.dateLabel}>{formatDate(selectedDate)} (주일)</span>
+                            <button className={styles.navBtn} onClick={goNext} disabled={isLatest}>▶</button>
+                        </div>
+                        <button onClick={handleDownloadExcel} className={styles.excelBtn}>
+                            📥 엑셀 다운로드
+                        </button>
                     </div>
                 </div>
 
@@ -86,7 +106,7 @@ const TeacherWeeklyReport = () => {
                     <div style={{ textAlign: 'center', padding: '50px' }}>데이터가 없습니다.</div>
                 ) : (
                     <div className={styles.tableWrapper}>
-                        <table className={styles.reportTable}>
+                        <table ref={tableRef} className={styles.reportTable}>
                             <thead>
                             <tr>
                                 <th className={styles.colName}>이름</th>

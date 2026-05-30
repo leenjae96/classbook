@@ -54,6 +54,8 @@ const WorshipTeamSheet = () => {
     }, [selectedDate, studentAttendances]);
 
 
+    const isLocked = selectedDate < getMostRecentSaturday();
+
     const totalCount = studentAttendances.length;
     const presentCount = studentAttendances.filter(student => student.status).length;
 
@@ -86,26 +88,48 @@ const WorshipTeamSheet = () => {
                 selectedDate={selectedDate}
                 onChange={setSelectedDate}
             />
-            {/* 학생 리스트 */}
-            <div className="student-list">
-                {studentAttendances.map((studentCheck) => (
-                    <StudentAttendanceRow
-                        key={studentCheck.id}
-                        studentCheck={studentCheck}
-                        onToggle={toggleStudentAttendance}
-                        onCommentChange={updateStudentAttendanceComment}
-                    />
-                ))}
-            </div>
 
-            <hr style={{margin: '20px 0'}}/>
+            {isLocked ? (
+                <div style={{
+                    marginTop: '12px',
+                    padding: '30px 20px',
+                    backgroundColor: '#f1f3f5',
+                    borderRadius: '10px',
+                    border: '1px solid #dee2e6',
+                    textAlign: 'center',
+                    color: '#868e96',
+                    lineHeight: '1.8',
+                }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
+                        제출이 완료되었거나 날짜가 지났습니다.
+                    </div>
+                    <div style={{ fontSize: '13px' }}>
+                        통계만 확인이 가능하며, 수정이 필요할 시에는 관리자에게 문의해주세요.
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div className="student-list">
+                        {studentAttendances.map((studentCheck) => (
+                            <StudentAttendanceRow
+                                key={studentCheck.id}
+                                studentCheck={studentCheck}
+                                onToggle={toggleStudentAttendance}
+                                onCommentChange={updateStudentAttendanceComment}
+                            />
+                        ))}
+                    </div>
 
-            <button
-                className="submit-btn"
-                onClick={submitAttendance}
-            >
-                제출하기
-            </button>
+                    <hr style={{margin: '20px 0'}}/>
+
+                    <button
+                        className="submit-btn"
+                        onClick={submitAttendance}
+                    >
+                        제출하기
+                    </button>
+                </>
+            )}
 
             {/* 꾹 눌렀을 때 정보창 (Modal)
             {popupInfo && (

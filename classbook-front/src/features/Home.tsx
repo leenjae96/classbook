@@ -4,6 +4,7 @@ import "../App.css";
 import {useEffect, useState} from "react";
 import {Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import {apiFetch} from "../hooks/api.ts";
+import {parseMarkdown} from "../util/markdownParser.ts";
 
 // 서버에서 받아올 5주치 데이터 타입 정의
 interface WeeklyStats {
@@ -14,12 +15,26 @@ interface WeeklyStats {
     grade3: number;
 }
 
+const CHANGELOG_SESSION_KEY = 'changelog_seen';
+
 const Home = () => {
     const navigate = useNavigate();
     const [weeklyData, setWeeklyData] = useState<WeeklyStats[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const [changelogHtml, setChangelogHtml] = useState<string | null>(null);
 
+    useEffect(() => {
+        if (sessionStorage.getItem(CHANGELOG_SESSION_KEY)) return;
+        fetch('/changelog.md')
+            .then(res => res.text())
+            .then(text => setChangelogHtml(parseMarkdown(text)))
+            .catch(() => {});
+    }, []);
 
+    const closeChangelog = () => {
+        sessionStorage.setItem(CHANGELOG_SESSION_KEY, '1');
+        setChangelogHtml(null);
+    };
 
     useEffect(() => {
         const fetchWeeklyStats = async () => {
@@ -64,6 +79,49 @@ const Home = () => {
 
     return (
         <div className="dashboard-container">
+            {changelogHtml && (
+                <div style={{
+                    position: 'fixed', inset: 0,
+                    backgroundColor: 'rgba(0,0,0,0.45)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    zIndex: 1000,
+                }}>
+                    <div style={{
+                        backgroundColor: '#fff',
+                        borderRadius: '12px',
+                        padding: '28px 32px',
+                        maxWidth: '480px',
+                        width: '90%',
+                        maxHeight: '80vh',
+                        overflowY: 'auto',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+                        position: 'relative',
+                    }}>
+                        <div
+                            dangerouslySetInnerHTML={{ __html: changelogHtml }}
+                            style={{ fontSize: '14px', lineHeight: '1.75', color: '#343a40' }}
+                        />
+                        <button
+                            onClick={closeChangelog}
+                            style={{
+                                marginTop: '20px',
+                                width: '100%',
+                                padding: '10px',
+                                backgroundColor: '#4361ee',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            확인했습니다
+                        </button>
+                    </div>
+                </div>
+            )}
+
             <h2 className="dashboard-title">대시보드 홈</h2>
 
             <div className="dashboard-grid">
