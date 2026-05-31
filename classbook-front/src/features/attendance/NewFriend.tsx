@@ -1,11 +1,11 @@
-import {useAttendance} from "../../hooks/useAttendance.ts"; // Hook 사용
-import {StudentAttendanceRow} from "../../components/attendance/StudentAttendanceRow.tsx"; // Component 사용
+import {useAttendance} from "../../hooks/useAttendance.ts";
+import {StudentAttendanceRow} from "../../components/attendance/StudentAttendanceRow.tsx";
 import {useState} from "react";
 import type {StudentAttendance, StudentInfo} from "../../constants/types.tsx";
 import {StudentInfoModal} from "../../components/attendance/StudentInfoModal.tsx";
 import {apiFetch} from "../../hooks/api.ts";
 import {DateSelector} from "../../components/common/DateSelector.tsx";
-import {getMostRecentSunday} from "../../util/dateUtils.tsx";
+import {getMostRecentSunday, snapToSunday} from "../../util/dateUtils.tsx";
 import BackButton from "../../components/common/BackButton.tsx";
 
 const NewFriend = () => {
@@ -15,15 +15,18 @@ const NewFriend = () => {
         studentAttendances,
         toggleStudentAttendance,
         updateStudentAttendanceComment,
-        submitAttendance
+        submitAttendance,
+        loading
     } = useAttendance({
         apiEndpoint: '/api/attendances/new-friend/sheet',
         initialDate: getMostRecentSunday()
     });
 
+    const isLocked = new Date().getDay() !== 0 || selectedDate !== new Date().toLocaleDateString('en-CA');
+
     // 모달 상태 관리
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [targetStudent, setTargetStudent] = useState<StudentInfo | null>(null); // 수정할 학생 객체
+    const [targetStudent, setTargetStudent] = useState<StudentInfo | null>(null);
 
     const handleEditClick = async (student: StudentAttendance) => {
         try {
@@ -64,39 +67,65 @@ const NewFriend = () => {
 
             <DateSelector
                 selectedDate={selectedDate}
-                onChange={setSelectedDate}
+                onChange={(d) => {
+                    if (new Date(d + 'T12:00:00').getDay() !== 0) {
+                        alert('일요일만 선택이 가능합니다.');
+                        setSelectedDate(snapToSunday(d));
+                    } else {
+                        setSelectedDate(d);
+                    }
+                }}
             />
-            <div className="student-list">
-                {studentAttendances.map((studentCheck) => (
-                    <StudentAttendanceRow
-                        key={studentCheck.id}
-                        studentCheck={studentCheck}
-                        onToggle={toggleStudentAttendance}
-                        onCommentChange={updateStudentAttendanceComment}
-                        // ★ 새친구 페이지 전용: 우측에 수정 버튼(⚙️) 배치
-                        renderRightAction={(s) => (
-                            <button
-                                onClick={() => handleEditClick(s)}
-                                style={{
-                                    padding: '10px', background: '#6c757d', color: 'white',
-                                    border: 'none', borderRadius: '5px', cursor: 'pointer'
-                                }}
-                            >
-                                ⚙️
-                            </button>
-                        )}
-                    />
-                ))}
-            </div>
 
-            <hr style={{margin: '20px 0'}}/>
-
-            <button
-                className="submit-btn"
-                onClick={submitAttendance}
-            >
-                제출하기
-            </button>
+            {loading ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#adb5bd' }}>불러오는 중...</div>
+            ) : isLocked ? (
+                <div style={{
+                    marginTop: '12px',
+                    padding: '30px 20px',
+                    backgroundColor: '#f1f3f5',
+                    borderRadius: '10px',
+                    border: '1px solid #dee2e6',
+                    textAlign: 'center',
+                    color: '#868e96',
+                    lineHeight: '1.8',
+                }}>
+                    <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
+                        제출은 당일에만 가능합니다.
+                    </div>
+                    <div style={{ fontSize: '13px' }}>
+                        제출 이후 보고서 열람을 원하는 경우 관리자에게 문의하세요.
+                    </div>
+                </div>
+            ) : (
+                <>
+                    <div className="student-list">
+                        {studentAttendances.map((studentCheck) => (
+                            <StudentAttendanceRow
+                                key={studentCheck.id}
+                                studentCheck={studentCheck}
+                                onToggle={toggleStudentAttendance}
+                                onCommentChange={updateStudentAttendanceComment}
+                                renderRightAction={(s) => (
+                                    <button
+                                        onClick={() => handleEditClick(s)}
+                                        style={{
+                                            padding: '10px', background: '#6c757d', color: 'white',
+                                            border: 'none', borderRadius: '5px', cursor: 'pointer'
+                                        }}
+                                    >
+                                        ⚙️
+                                    </button>
+                                )}
+                            />
+                        ))}
+                    </div>
+                    <hr style={{margin: '20px 0'}}/>
+                    <button className="submit-btn" onClick={submitAttendance}>
+                        제출하기
+                    </button>
+                </>
+            )}
 
             <StudentInfoModal
                 isOpen={isModalOpen}
