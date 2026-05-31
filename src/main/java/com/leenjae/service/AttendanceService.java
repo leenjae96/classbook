@@ -10,6 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -45,19 +49,21 @@ public class AttendanceService {
 
     public AttendanceDto.Sheet getSheetByTeacherId(long teacherId, LocalDate date) {
         List<Student> students = studentRepository.findByTeacherId(teacherId);
-        Teacher teacher = teacherRepository.findById(teacherId).orElseThrow();
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new IllegalArgumentException("선생님을 찾을 수 없습니다. teacherId=" + teacherId));
         return getSheet(students, teacher, date);
     }
 
     //반 출석부. 학년반 정보로 classroom
     public AttendanceDto.Sheet getSheetByGradeAndClassNo(int grade, int classNo, LocalDate date) {
         Long teacherId = classroomRepository.findByGradeAndClassNo(grade, String.valueOf(classNo))
-                .orElseThrow()
+                .orElseThrow(() -> new IllegalArgumentException("반 정보를 찾을 수 없습니다. grade=" + grade + ", classNo=" + classNo))
                 .getTeacher()
                 .getId();
 
         List<Student> students = studentRepository.findByTeacherId(teacherId);
-        Teacher teacher = teacherRepository.findById(teacherId).orElseThrow();
+        Teacher teacher = teacherRepository.findById(teacherId)
+                .orElseThrow(() -> new IllegalArgumentException("선생님을 찾을 수 없습니다. teacherId=" + teacherId));
 
         return getSheet(students, teacher, date);
     }
@@ -191,9 +197,35 @@ public class AttendanceService {
                 .build();
     }
 
+    private void validateDateForSave(LocalDate date, AttendanceDto.Sheet sheet) {
+        LocalDate today = LocalDate.now();
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+
+        if (dayOfWeek == DayOfWeek.SATURDAY) {
+            if (!date.equals(today)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "제출은 당일에만 가능합니다.");
+            }
+        } else if (dayOfWeek == DayOfWeek.SUNDAY) {
+            if (!date.equals(today)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "제출은 당일에만 가능합니다.");
+            }
+            if (sheet.teacherReport() != null) {
+                long teacherId = sheet.teacherReport().id();
+                com.leenjae.domain.TeacherReport existingReport =
+                        teacherReportRepository.findByTeacherIdAndDate(teacherId, date);
+                if (existingReport != null) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이미 제출된 출석부입니다.");
+                }
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주일 또는 토요일만 출석 제출이 가능합니다.");
+        }
+    }
+
     @Transactional
     //LEE: save 작업이후 예외나 에러시 사용자는 어떻게 감지할 수 있나?
     public void saveSheet(LocalDate date, AttendanceDto.Sheet sheet) {
+        validateDateForSave(date, sheet);
         // administrative data인 경우는 studentChecks가 없음.
         List<AttendanceDto.StudentAttendance> studentAttendances = sheet.studentAttendances();
         if (studentAttendances != null) {
@@ -389,7 +421,7 @@ public class AttendanceService {
 
     public StudentDto.Info getStudent(Long id) {
         Student s = studentRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new IllegalArgumentException("학생을 찾을 수 없습니다. id=" + id));
         Classroom c = s.getClassroom();
         return new StudentDto.Info(
                 s.getId(),
