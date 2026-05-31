@@ -63,9 +63,11 @@ public class StatisticsService {
     }
 
     public StatisticsDto.Response getGradeStatistics(LocalDate date) {
+        LocalDate exclusiveDate = LocalDate.of(LocalDate.now().getYear(), 1, 1);
+
         return StatisticsDto.Response.builder()
                 .classStats(studentAttendanceRepository.getStudentStatsByDate(date))
-                .newFriendStats(studentAttendanceRepository.getNewFriendStatsByDate(date))
+                .newFriendStats(studentAttendanceRepository.getNewFriendStatsByDate(date, exclusiveDate))
                 .date(date)
                 .build();
     }

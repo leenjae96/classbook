@@ -20,6 +20,8 @@ interface StudentStats {
 interface NewFriendStats {
     attendance: number;
     total: number;
+    tracingAttendance: number;
+    tracingTotal: number;
 }
 
 interface StatisticsResponse {
@@ -32,7 +34,7 @@ const StatisticsPage = () => {
 
     // 2. 상태 분리: 반별 통계 배열과 새친구 객체
     const [classStats, setClassStats] = useState<StudentStats[]>([]);
-    const [newFriendStats, setNewFriendStats] = useState<NewFriendStats>({attendance: 0, total: 0});
+    const [newFriendStats, setNewFriendStats] = useState<NewFriendStats>({attendance: 0, total: 0, tracingAttendance:0, tracingTotal: 0});
     const [loading, setLoading] = useState<boolean>(false);
 
     const fetchData = async () => {
@@ -47,7 +49,6 @@ const StatisticsPage = () => {
         } catch (error) {
             console.error("통계 데이터를 불러오는데 실패했습니다.", error);
             setClassStats([]);
-            setNewFriendStats({attendance: 0, total: 0});
         } finally {
             setLoading(false);
         }
@@ -172,14 +173,17 @@ const StatisticsPage = () => {
                         </span>
                     </div>
 
-                    {/* 4. 새친구 서브 통계 (전체 통계 바로 아래 붙음) */}
-                    {newFriendStats.total > 0 && (
-                        <div className={styles.newFriendSubRow}>
-                            <span className={styles.newFriendText}>
-                                (+ 새친구 {newFriendStats.attendance} / {newFriendStats.total})
-                            </span>
-                        </div>
-                    )}
+                    {/* 4. 새친구 서브 통계 (0이어도 무조건 띄움 + 2줄 표출) */}
+                    <div className={styles.newFriendSubRow}>
+                        <span className={styles.newFriendText}>
+                            (+ 새친구 {newFriendStats.attendance} / {newFriendStats.total})
+                        </span>
+                    </div>
+                    <div className={styles.newFriendSubRow}>
+                         <span className={styles.newFriendText}>
+                            (올해 등록 추적 {newFriendStats.tracingAttendance} / {newFriendStats.tracingTotal})
+                        </span>
+                    </div>
                 </div>
             )}
         </div>

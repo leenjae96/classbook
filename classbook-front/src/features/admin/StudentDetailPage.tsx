@@ -82,7 +82,7 @@ const StudentDetailPage = () => {
     const handleSave = async (data: Partial<StudentInfo> & { editReason?: string }) => {
         try {
             // 인적사항 및 상태 변경 API 호출 (PUT)
-            await fetch(`/api/administrator/students/${data.id}`, {
+            await apiFetch(`/api/administrator/students`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),

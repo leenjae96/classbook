@@ -75,14 +75,19 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
     // 2. 새친구 통계
     @Query("""
                 SELECT new com.leenjae.dto.StatisticsDto$NewFriendStats(
-                    COALESCE(SUM(CASE WHEN sa.status = true THEN 1L ELSE 0L END), 0L),
-                    COUNT(s.id)
-                )
-                FROM Student s
-                LEFT JOIN StudentAttendance sa ON sa.student = s AND sa.date = :date
-                WHERE s.status = 0
+                            COALESCE(SUM(CASE WHEN s.status = 0 AND sa.status = true THEN 1L ELSE 0L END), 0L),
+                            COALESCE(SUM(CASE WHEN s.status = 0 THEN 1L ELSE 0L END), 0L),
+                            COALESCE(SUM(CASE WHEN s.registeredAt != :excludeDate AND sa.status = true THEN 1L ELSE 0L END), 0L),
+                            COALESCE(SUM(CASE WHEN s.registeredAt != :excludeDate THEN 1L ELSE 0L END), 0L)
+                        )
+                        FROM Student s
+                        LEFT JOIN StudentAttendance sa ON sa.student = s AND sa.date = :date
+                        WHERE s.status = 0 OR s.registeredAt != :excludeDate
             """)
-    StatisticsDto.NewFriendStats getNewFriendStatsByDate(@Param("date") LocalDate date);
+    StatisticsDto.NewFriendStats getNewFriendStatsByDate(
+            @Param("date") LocalDate date,
+            @Param("excludeDate") LocalDate excludeDate // ✨ 파라미터 추가!
+    );
 
     @Query("""
                 SELECT new com.leenjae.dto.AttendanceDto$RawCumulativeStats(

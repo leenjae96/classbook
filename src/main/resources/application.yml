@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: dev
+
+# 공통 설정
+server:
+  servlet:
+    encoding:
+      charset: utf-8
+      enabled: true
+      force: true
+  address: 0.0.0.0

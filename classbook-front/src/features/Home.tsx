@@ -4,15 +4,21 @@ import "../App.css";
 import {useEffect, useState} from "react";
 import {Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import {apiFetch} from "../hooks/api.ts";
-import {parseMarkdown} from "../util/markdownParser.ts";
 
-// 서버에서 받아올 5주치 데이터 타입 정의
 interface WeeklyStats {
-    date: string;  // "02/18", "02/25" 등 라벨용
+    date: string;
     grade0: number;
     grade1: number;
     grade2: number;
     grade3: number;
+}
+
+interface ChangelogData {
+    version: string;
+    date: string;
+    notice?: string;
+    sections: { title: string; items: string[] }[];
+    footer?: string;
 }
 
 const CHANGELOG_SESSION_KEY = 'changelog_seen';
@@ -21,19 +27,19 @@ const Home = () => {
     const navigate = useNavigate();
     const [weeklyData, setWeeklyData] = useState<WeeklyStats[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
-    const [changelogHtml, setChangelogHtml] = useState<string | null>(null);
+    const [changelog, setChangelog] = useState<ChangelogData | null>(null);
 
     useEffect(() => {
         if (sessionStorage.getItem(CHANGELOG_SESSION_KEY)) return;
-        fetch('/changelog.md')
-            .then(res => res.text())
-            .then(text => setChangelogHtml(parseMarkdown(text)))
+        fetch('/changelog.json')
+            .then(res => res.json())
+            .then((data: ChangelogData) => setChangelog(data))
             .catch(() => {});
     }, []);
 
     const closeChangelog = () => {
         sessionStorage.setItem(CHANGELOG_SESSION_KEY, '1');
-        setChangelogHtml(null);
+        setChangelog(null);
     };
 
     useEffect(() => {
@@ -79,45 +85,124 @@ const Home = () => {
 
     return (
         <div className="dashboard-container">
-            {changelogHtml && (
+            {changelog && (
                 <div style={{
                     position: 'fixed', inset: 0,
-                    backgroundColor: 'rgba(0,0,0,0.45)',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     zIndex: 1000,
+                    padding: '32px 20px',
+                    boxSizing: 'border-box',
                 }}>
                     <div style={{
                         backgroundColor: '#fff',
-                        borderRadius: '12px',
-                        padding: '28px 32px',
-                        maxWidth: '480px',
-                        width: '90%',
-                        maxHeight: '80vh',
-                        overflowY: 'auto',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
-                        position: 'relative',
+                        borderRadius: '16px',
+                        maxWidth: '460px',
+                        width: '100%',
+                        maxHeight: '100%',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                        display: 'flex',
+                        flexDirection: 'column',
                     }}>
-                        <div
-                            dangerouslySetInnerHTML={{ __html: changelogHtml }}
-                            style={{ fontSize: '14px', lineHeight: '1.75', color: '#343a40' }}
-                        />
-                        <button
-                            onClick={closeChangelog}
-                            style={{
-                                marginTop: '20px',
-                                width: '100%',
-                                padding: '10px',
-                                backgroundColor: '#4361ee',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '8px',
-                                fontSize: '14px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            확인했습니다
-                        </button>
+                        {/* 스크롤 영역 */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px 12px' }}>
+                            {/* 헤더 */}
+                            <div style={{ marginBottom: '16px' }}>
+                                <span style={{
+                                    display: 'inline-block',
+                                    backgroundColor: '#4361ee',
+                                    color: '#fff',
+                                    fontSize: '11px',
+                                    fontWeight: '700',
+                                    padding: '3px 8px',
+                                    borderRadius: '20px',
+                                    marginBottom: '8px',
+                                    letterSpacing: '0.5px',
+                                }}>
+                                    업데이트 {changelog.version}
+                                </span>
+                                <div style={{ fontSize: '12px', color: '#adb5bd' }}>{changelog.date}</div>
+                            </div>
+
+                            {/* 공지 메시지 */}
+                            {changelog.notice && (
+                                <div style={{
+                                    backgroundColor: '#fff8e1',
+                                    border: '1px solid #ffe082',
+                                    borderRadius: '8px',
+                                    padding: '10px 14px',
+                                    fontSize: '13px',
+                                    color: '#795548',
+                                    marginBottom: '16px',
+                                    lineHeight: '1.6',
+                                }}>
+                                    📢 {changelog.notice}
+                                </div>
+                            )}
+
+                            {/* 섹션 목록 */}
+                            {changelog.sections.map((section, i) => (
+                                <div key={i} style={{ marginBottom: '14px' }}>
+                                    <div style={{
+                                        fontSize: '12px',
+                                        fontWeight: '700',
+                                        color: '#4361ee',
+                                        textTransform: 'uppercase',
+                                        letterSpacing: '0.8px',
+                                        marginBottom: '6px',
+                                    }}>
+                                        {section.title}
+                                    </div>
+                                    {section.items.map((item, j) => (
+                                        <div key={j} style={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: '8px',
+                                            fontSize: '13px',
+                                            color: '#343a40',
+                                            lineHeight: '1.6',
+                                            marginBottom: '4px',
+                                        }}>
+                                            <span style={{ color: '#adb5bd', flexShrink: 0, marginTop: '1px' }}>•</span>
+                                            <span>{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+
+                            {/* 푸터 */}
+                            {changelog.footer && (
+                                <div style={{
+                                    fontSize: '12px',
+                                    color: '#adb5bd',
+                                    marginTop: '12px',
+                                    paddingTop: '12px',
+                                    borderTop: '1px solid #f1f3f5',
+                                }}>
+                                    {changelog.footer}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 고정 버튼 */}
+                        <div style={{ padding: '12px 24px 24px' }}>
+                            <button
+                                onClick={closeChangelog}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    backgroundColor: '#4361ee',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    fontSize: '14px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                확인했습니다
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
