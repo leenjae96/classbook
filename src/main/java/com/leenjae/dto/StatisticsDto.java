@@ -43,7 +43,9 @@ public class StatisticsDto {
     @Builder
     public record NewFriendStats(
             Long attendance,
-            Long total
+            Long total,
+            Long tracingAttendance, // 올해 우리교회 등록한 새친구 추적용
+            Long tracingTotal // 올해 우리교회 등록한 새친구 추적용
     ) {
     }
 
