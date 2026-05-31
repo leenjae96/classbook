@@ -1,6 +1,7 @@
 import {useCallback, useEffect, useState} from 'react';
 import type {Sheet, StudentAttendance, TeacherAttendance, TeacherReport} from "../constants/types.tsx";
 import {useNavigate} from "react-router-dom";
+import {apiFetch} from "./api.ts";
 
 // API 호출 함수가 prop으로 들어오거나, URL이 들어오도록 설계
 interface UseAttendanceProps {
@@ -21,15 +22,10 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
         if (!apiEndpoint) return;
 
         setLoading(true);
-        // query param에 date가 포함되어 있다고 가정하거나, 여기서 붙여줌
         const urlWithDate = apiEndpoint.includes('date=')
             ? apiEndpoint
             : `${apiEndpoint}${apiEndpoint.includes('?') ? '&' : '?'}date=${selectedDate}`;
-        fetch(urlWithDate)
-            .then(res => {
-                if (!res.ok) throw Error(`responseError! status : ${res.status}`);
-                return res.json();
-            })
+        apiFetch(urlWithDate)
             .then((data: Sheet) => {
                 setStudentAttendances(data.studentAttendances || []);
                 setTeacherReport(data.teacherReport || undefined);
@@ -108,15 +104,14 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
         }
 
         try {
-            await fetch(`/api/attendances/sheet?date=${selectedDate}`, { // 엔드포인트는 상황에 맞게 조정 필요
+            await apiFetch(`/api/attendances/sheet?date=${selectedDate}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     studentAttendances: studentAttendances,
-                    teacherReport: teacherReport ? teacherReport : null,
+                    teacherReport: teacherReport ?? null,
                     teacherAttendances: teacherAttendances
                 }),
-
             });
             alert('제출되었습니다!');
             navigate(-1);

@@ -23,3 +23,21 @@ export const getMostRecentSaturday = (): string => {
 
     return saturday.toLocaleDateString('en-CA'); // 'YYYY-MM-DD' 포맷
 };
+
+// 선택한 날짜 기준으로 바로 직전 일요일 반환 (이미 일요일이면 그대로)
+export const snapToSunday = (date: string): string => {
+    const d = new Date(date + 'T12:00:00');
+    const dayOfWeek = d.getDay();
+    if (dayOfWeek === 0) return date;
+    d.setDate(d.getDate() - dayOfWeek);
+    return d.toLocaleDateString('en-CA');
+};
+
+// 선택한 날짜 기준으로 바로 직전 토요일 반환 (이미 토요일이면 그대로)
+export const snapToSaturday = (date: string): string => {
+    const d = new Date(date + 'T12:00:00');
+    const dayOfWeek = d.getDay();
+    if (dayOfWeek === 6) return date;
+    d.setDate(d.getDate() - (dayOfWeek + 1));
+    return d.toLocaleDateString('en-CA');
+};
