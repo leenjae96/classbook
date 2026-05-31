@@ -1,7 +1,8 @@
 import {useNavigate, useParams} from 'react-router-dom';
 import BackButton from "../../components/common/BackButton.tsx";
 import {useAttendance} from "../../hooks/useAttendance.ts";
-import {getMostRecentSaturday} from "../../util/dateUtils.tsx";
+import {getMostRecentSaturday, snapToSaturday} from "../../util/dateUtils.tsx";
+import {apiFetch} from "../../hooks/api.ts";
 import {DateSelector} from "../../components/common/DateSelector.tsx";
 import {StudentAttendanceRow} from "../../components/attendance/StudentAttendanceRow.tsx";
 import {useCallback} from "react";
@@ -16,6 +17,7 @@ const WorshipTeamSheet = () => {
         studentAttendances,
         toggleStudentAttendance,
         updateStudentAttendanceComment,
+        loading
     } = useAttendance({
         apiEndpoint: `/api/attendances/sheet?teamName=${teamName}`,
         initialDate: getMostRecentSaturday(),
@@ -34,16 +36,12 @@ const WorshipTeamSheet = () => {
         }
 
         try {
-            await fetch(`/api/attendances/sheet?date=${selectedDate}`, { // 엔드포인트는 상황에 맞게 조정 필요
+            await apiFetch(`/api/attendances/sheet?date=${selectedDate}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    studentAttendances: studentAttendances,
-                }),
-
+                body: JSON.stringify({ studentAttendances }),
             });
             alert('제출되었습니다!');
-            console.log(studentAttendances);
             navigate(-1);
             return true;
         } catch (e) {
@@ -54,7 +52,7 @@ const WorshipTeamSheet = () => {
     }, [selectedDate, studentAttendances]);
 
 
-    const isLocked = selectedDate < getMostRecentSaturday();
+    const isLocked = new Date().getDay() !== 6 || selectedDate !== new Date().toLocaleDateString('en-CA');
 
     const totalCount = studentAttendances.length;
     const presentCount = studentAttendances.filter(student => student.status).length;
@@ -86,10 +84,19 @@ const WorshipTeamSheet = () => {
 
             <DateSelector
                 selectedDate={selectedDate}
-                onChange={setSelectedDate}
+                onChange={(d) => {
+                    if (new Date(d + 'T12:00:00').getDay() !== 6) {
+                        alert('토요일만 선택이 가능합니다.');
+                        setSelectedDate(snapToSaturday(d));
+                    } else {
+                        setSelectedDate(d);
+                    }
+                }}
             />
 
-            {isLocked ? (
+            {loading ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#adb5bd' }}>불러오는 중...</div>
+            ) : isLocked ? (
                 <div style={{
                     marginTop: '12px',
                     padding: '30px 20px',
@@ -101,10 +108,10 @@ const WorshipTeamSheet = () => {
                     lineHeight: '1.8',
                 }}>
                     <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
-                        제출이 완료되었거나 날짜가 지났습니다.
+                        제출은 당일에만 가능합니다.
                     </div>
                     <div style={{ fontSize: '13px' }}>
-                        통계만 확인이 가능하며, 수정이 필요할 시에는 관리자에게 문의해주세요.
+                        제출 이후 보고서 열람을 원하는 경우 관리자에게 문의하세요.
                     </div>
                 </div>
             ) : (

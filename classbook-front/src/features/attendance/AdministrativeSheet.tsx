@@ -4,7 +4,7 @@ import {useAttendance} from "../../hooks/useAttendance.ts";
 import {TeacherReportRow} from "../../components/attendance/TeacherReportRow.tsx";
 import {TeacherAttendanceRow} from "../../components/attendance/TeacherAttendanceRow.tsx";
 import {DateSelector} from "../../components/common/DateSelector.tsx";
-import { getMostRecentSunday } from "../../util/dateUtils.tsx";
+import { getMostRecentSunday, snapToSunday } from "../../util/dateUtils.tsx";
 import BackButton from "../../components/common/BackButton.tsx";
 
 const AdministrativeSheet = () => {
@@ -21,7 +21,8 @@ const AdministrativeSheet = () => {
         handleTeacherReportCommentChange,
         teacherAttendances,
         toggleTeacherAttendance,
-        updateTeacherAttendanceComment
+        updateTeacherAttendanceComment,
+        loading
     } = useAttendance({
         apiEndpoint: `/api/attendances/sheet?teacherId=${teacherId}`,
         initialDate: getMostRecentSunday()
@@ -34,11 +35,11 @@ const AdministrativeSheet = () => {
         }
     }, [teacherReport, selectedDate]);
 
+    const todayStr = new Date().toLocaleDateString('en-CA');
     const isLocked =
-        selectedDate < getMostRecentSunday() ||
-        (selectedDate === getMostRecentSunday() &&
-            loadedWorship?.date === selectedDate &&
-            loadedWorship.worship !== -1);
+        new Date().getDay() !== 0 ||
+        selectedDate !== todayStr ||
+        (loadedWorship?.date === selectedDate && loadedWorship.worship !== -1);
 
     const lockedBox = (
         <div style={{
@@ -52,10 +53,10 @@ const AdministrativeSheet = () => {
             lineHeight: '1.8',
         }}>
             <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
-                제출이 완료되었거나 날짜가 지났습니다.
+                제출은 당일에만 가능합니다.
             </div>
             <div style={{ fontSize: '13px' }}>
-                통계만 확인이 가능하며, 수정이 필요할 시에는 관리자에게 문의해주세요.
+                제출 이후 보고서 열람을 원하는 경우 관리자에게 문의하세요.
             </div>
         </div>
     );
@@ -67,10 +68,19 @@ const AdministrativeSheet = () => {
 
             <DateSelector
                 selectedDate={selectedDate}
-                onChange={setSelectedDate}
+                onChange={(d) => {
+                    if (new Date(d + 'T12:00:00').getDay() !== 0) {
+                        alert('일요일만 선택이 가능합니다.');
+                        setSelectedDate(snapToSunday(d));
+                    } else {
+                        setSelectedDate(d);
+                    }
+                }}
             />
 
-            {isLocked ? lockedBox : (
+            {loading ? (
+                <div style={{ padding: '40px', textAlign: 'center', color: '#adb5bd' }}>불러오는 중...</div>
+            ) : isLocked ? lockedBox : (
                 <>
                     {teacherId == '2' ? (
                         <div className="teacher-list">
