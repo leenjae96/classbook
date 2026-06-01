@@ -1,0 +1,108 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── 월 네비게이션 ── */
+.monthNav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+
+.monthLabel {
+    font-size: 18px;
+    font-weight: 700;
+    min-width: 90px;
+    text-align: center;
+    color: #212529;
+}
+
+.navBtn {
+    padding: 6px 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.15s ease;
+}
+
+.navBtn:hover {
+    background-color: #e9ecef;
+}
+
+/* ── 섹션 카드 ── */
+.section {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sectionTitle {
+    padding: 10px 16px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+    font-size: 14px;
+    color: #495057;
+}
+
+/* ── 생일 목록 ── */
+.list {
+    padding: 4px 0;
+}
+
+.item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 14px;
+}
+
+.item:last-child {
+    border-bottom: none;
+}
+
+.date {
+    color: #868e96;
+    font-size: 13px;
+    min-width: 38px;
+    font-variant-numeric: tabular-nums;
+}
+
+.name {
+    flex: 1;
+    font-weight: 500;
+    color: #212529;
+}
+
+.classLabel {
+    font-size: 12px;
+    color: #868e96;
+    background-color: #f1f3f5;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.lunarBadge {
+    font-size: 11px;
+    color: #e67700;
+    background-color: #fff3bf;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+/* ── 빈 상태 / 로딩 ── */
+.empty {
+    padding: 24px 16px;
+    color: #adb5bd;
+    font-size: 14px;
+    text-align: center;
+}
