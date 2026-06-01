@@ -13,13 +13,9 @@
     align-items: center;
 }
 
-/* ✨ 테이블 감싸는 곳에서 스크롤을 완벽히 통제 */
 .tableWrapper {
     width: 100%;
-    max-width: 100%;
-    /* 🚨 여기서 최대 높이를 지정해서 안쪽 스크롤만 생기게 함 */
-    max-height: calc(100vh - 200px);
-    overflow: auto; /* 상하좌우 스크롤 생성 */
+    overflow-x: auto; /* 가로만 스크롤 — 세로는 페이지 자체가 담당 */
     border: 1px solid #dee2e6;
     border-radius: 8px;
     background-color: #fff;
@@ -84,9 +80,27 @@
     color: #ccc;
 }
 
-.stickyTeacherName {
+.stickyTeacherClassroom {
     position: sticky;
     left: 0;
+    min-width: 60px;
+    width: 60px;
+    z-index: 5;
+    border-right: 1px solid #e9ecef;
+}
+
+.statsTable thead th.stickyTeacherClassroom {
+    z-index: 20;
+    background-color: #e9ecef;
+}
+
+.statsTable td.stickyTeacherClassroom {
+    background-color: #fff;
+}
+
+.stickyTeacherName {
+    position: sticky;
+    left: 60px;
     min-width: 70px;
     width: 70px;
     z-index: 5;
@@ -144,4 +158,64 @@
 
 .excelBtn:hover {
     background-color: #1a5c38;
+}
+
+/* ── 일반학생/새친구 탭 틀고정 (학년 / 반 / 이름) ── */
+.stickyGrade {
+    position: sticky;
+    left: 0;
+    min-width: 40px;
+    width: 40px;
+    z-index: 5;
+    border-right: 1px solid #e9ecef;
+}
+
+.stickyClassNo {
+    position: sticky;
+    left: 40px;
+    min-width: 40px;
+    width: 40px;
+    z-index: 5;
+    border-right: 1px solid #e9ecef;
+}
+
+.stickyStudentName {
+    position: sticky;
+    left: 80px;
+    min-width: 60px;
+    width: 60px;
+    z-index: 5;
+    border-right: 2px solid #adb5bd !important;
+}
+
+.statsTable thead th.stickyGrade,
+.statsTable thead th.stickyClassNo,
+.statsTable thead th.stickyStudentName {
+    z-index: 20;
+    background-color: #e9ecef;
+}
+
+.statsTable td.stickyGrade,
+.statsTable td.stickyClassNo,
+.statsTable td.stickyStudentName {
+    background-color: #fff;
+}
+
+/* ── 별분반 탭 틀고정 (이름만) ── */
+.stickySpecialName {
+    position: sticky;
+    left: 0;
+    min-width: 70px;
+    width: 70px;
+    z-index: 5;
+    border-right: 2px solid #adb5bd !important;
+}
+
+.statsTable thead th.stickySpecialName {
+    z-index: 20;
+    background-color: #e9ecef;
+}
+
+.statsTable td.stickySpecialName {
+    background-color: #fff;
 }

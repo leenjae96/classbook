@@ -505,23 +505,64 @@ public class AttendanceService {
                 .sorted()
                 .toList();
 
-        Map<String, List<TeacherAttendance>> byTeacher = records.stream()
+        // 선생님ID → Classroom 맵 (N+1 방지)
+        Map<Long, com.leenjae.domain.Classroom> classroomByTeacherId =
+                classroomRepository.findAllWithTeacher()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                c -> c.getTeacher().getId(),
+                                c -> c,
+                                (a, b) -> a
+                        ));
+
+        // teacherId 기준으로 그룹핑
+        Map<Long, List<TeacherAttendance>> byTeacherId = records.stream()
                 .collect(Collectors.groupingBy(
-                        r -> r.getTeacher().getName(),
+                        r -> r.getTeacher().getId(),
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));
 
-        List<AttendanceDto.TeacherAttendanceSummary> teachers = byTeacher.entrySet().stream()
-                .map(e -> new AttendanceDto.TeacherAttendanceSummary(
-                        e.getKey(),
-                        e.getValue().stream()
-                                .filter(ta -> Boolean.TRUE.equals(ta.getStatus()))
-                                .map(ta -> ta.getDate().format(formatter))
-                                .toList()
-                ))
+        List<AttendanceDto.TeacherAttendanceSummary> teachers = byTeacherId.entrySet().stream()
+                .map(e -> {
+                    Long teacherId = e.getKey();
+                    List<TeacherAttendance> tas = e.getValue();
+                    String name = tas.get(0).getTeacher().getName();
+                    com.leenjae.domain.Classroom classroom = classroomByTeacherId.get(teacherId);
+                    String classroomLabel = formatTeacherClassroomLabel(classroom);
+                    List<String> attendances = tas.stream()
+                            .filter(ta -> Boolean.TRUE.equals(ta.getStatus()))
+                            .map(ta -> ta.getDate().format(formatter))
+                            .toList();
+                    return new AttendanceDto.TeacherAttendanceSummary(classroomLabel, name, attendances);
+                })
+                .sorted(Comparator
+                        .comparingInt((AttendanceDto.TeacherAttendanceSummary t) -> teacherGradeSortKey(t.classroom()))
+                        .thenComparingInt(t -> teacherClassNoSortKey(t.classroom()))
+                        .thenComparing(AttendanceDto.TeacherAttendanceSummary::name))
                 .toList();
 
         return new AttendanceDto.TeacherCumulativeSheet(headerDates, teachers);
+    }
+
+    private String formatTeacherClassroomLabel(com.leenjae.domain.Classroom classroom) {
+        if (classroom == null) return "-";
+        int grade = classroom.getGrade();
+        String classNo = classroom.getClassNo();
+        if (grade == 0) return "1부" + ("0".equals(classNo) ? "여" : "남");
+        return grade + "-" + classNo;
+    }
+
+    private int teacherGradeSortKey(String classroomLabel) {
+        if ("-".equals(classroomLabel)) return 100;
+        if (classroomLabel.startsWith("1부")) return 10;
+        try { return Integer.parseInt(classroomLabel.split("-")[0]); } catch (Exception e) { return 100; }
+    }
+
+    private int teacherClassNoSortKey(String classroomLabel) {
+        if ("-".equals(classroomLabel) || classroomLabel.startsWith("1부")) {
+            return "1부남".equals(classroomLabel) ? 0 : 1;
+        }
+        try { return Integer.parseInt(classroomLabel.split("-")[1]); } catch (Exception e) { return 999; }
     }
 }

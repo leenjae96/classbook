@@ -6,6 +6,7 @@ import styles from './TeacherWeeklyReport.module.css';
 import * as XLSX from 'xlsx-js-style';
 
 interface TeacherWeeklyReportItem {
+    classroom: string;
     name: string;
     date: string | null;
     worship: number | null;
@@ -109,6 +110,7 @@ const TeacherWeeklyReport = () => {
                         <table ref={tableRef} className={styles.reportTable}>
                             <thead>
                             <tr>
+                                <th className={styles.colClassroom}>학년반</th>
                                 <th className={styles.colName}>이름</th>
                                 <th className={styles.colWorship}>예배</th>
                                 <th className={styles.colOtn}>OTN</th>
@@ -121,6 +123,7 @@ const TeacherWeeklyReport = () => {
                                 const hasReport = item.date !== null;
                                 return (
                                     <tr key={`${item.name}-${idx}`} className={!hasReport ? styles.noReport : ''}>
+                                        <td className={styles.colClassroom}>{item.classroom}</td>
                                         <td className={styles.colName}>{item.name}</td>
                                         <td className={styles.colWorship}>{getWorshipText(item.worship)}</td>
                                         <td className={styles.colOtn}>
