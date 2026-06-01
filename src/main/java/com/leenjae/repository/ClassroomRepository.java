@@ -21,4 +21,7 @@ public interface ClassroomRepository extends JpaRepository<Classroom, Long> {
             "join fetch c.teacher " +
             "where c.grade = :grade and c.classNo = :classNo ")
     Optional<Classroom> findByGradeAndClassNo(Integer grade, String classNo);
+
+    @Query("select c from Classroom c join fetch c.teacher where c.teacher is not null")
+    List<Classroom> findAllWithTeacher();
 }

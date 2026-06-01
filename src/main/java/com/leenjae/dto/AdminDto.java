@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 public class AdminDto {
     public record TeacherWeeklyReportItem(
+            String classroom,
             String name,
             LocalDate date,
             Integer worship,

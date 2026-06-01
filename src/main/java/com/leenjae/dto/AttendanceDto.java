@@ -91,6 +91,7 @@ public class AttendanceDto {
     ) {}
 
     public record TeacherAttendanceSummary(
+            String classroom,
             String name,
             List<String> attendances
     ) {}
