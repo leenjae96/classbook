@@ -30,6 +30,20 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
 
     List<StudentAttendance> findByStudentIdInAndDate(List<Long> studentIds, LocalDate date);
 
+    // 새친구 등반 판단용: 특정 날짜 이전의 출석 횟수 (오늘 제외)
+    @Query("""
+        SELECT sa.student.id, COUNT(sa)
+        FROM StudentAttendance sa
+        WHERE sa.student.id IN :studentIds
+          AND sa.status = true
+          AND sa.date < :beforeDate
+        GROUP BY sa.student.id
+    """)
+    List<Object[]> countPastAttendanceByStudentIds(
+            @Param("studentIds") List<Long> studentIds,
+            @Param("beforeDate") LocalDate beforeDate
+    );
+
     //대시보드용
     @Query("""
     SELECT new com.leenjae.dto.StatisticsDto$WeeklyGradeStats(

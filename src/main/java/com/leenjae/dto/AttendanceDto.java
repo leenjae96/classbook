@@ -31,7 +31,8 @@ public class AttendanceDto {
             String studentName,
             Integer studentStatus,
             Boolean status,
-            String comments
+            String comments,
+            Integer pastAttendanceCount // 새친구(status=0)에만 값 있음, 나머지는 null
     ) {}
 
     @Builder

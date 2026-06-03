@@ -137,13 +137,6 @@ const CumulativeStatistics = () => {
     const specialClassStudents = useMemo(() =>
         sheetData?.students.filter(s => s.status === 3) ?? [], [sheetData]);
 
-    // 날짜 셀 배경색: registeredAt=연두, promotedAt(≠registeredAt)=노랑
-    const getDateCellBg = (date: string, s: StudentAttendanceSummary): string | undefined => {
-        if (s.registeredAt === date) return '#e8f5e9';
-        if (s.promotedAt && s.promotedAt !== s.registeredAt && s.promotedAt === date) return '#fff9c4';
-        return undefined;
-    };
-
     const handleDownloadExcel = () => {
         if (!tableRef.current) return;
         const { endDate } = getDateRange();
@@ -184,14 +177,14 @@ const CumulativeStatistics = () => {
                     {showPromotedLabel && student.status === 1 && (
                         <span style={{ fontSize: '10px', color: '#adb5bd', marginLeft: '4px' }}>(등반)</span>
                     )}
+                    {student.status === 0 && student.attendances.length >= 3 && (
+                        <span style={{ fontSize: '10px', color: '#e65100', background: '#fff3e0', padding: '1px 5px', borderRadius: '8px', marginLeft: '4px' }}>🎉등반!</span>
+                    )}
                 </td>
                 {headerDates.map(date => {
                     const isPresent = student.attendances.includes(date);
-                    const bg = getDateCellBg(date, student);
                     return (
-                        <td key={date}
-                            className={isPresent ? styles.present : styles.absent}
-                            style={bg ? { backgroundColor: bg } : undefined}>
+                        <td key={date} className={isPresent ? styles.present : styles.absent}>
                             {isPresent ? 'O' : ''}
                         </td>
                     );

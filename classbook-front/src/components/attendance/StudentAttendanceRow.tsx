@@ -75,6 +75,20 @@ export const StudentAttendanceRow = ({ studentCheck, onToggle, onCommentChange, 
                 onPointerLeave={handlePointerLeave}
             >
                 {studentCheck.studentName}
+                {/* 새친구 등반 필요 뱃지: 오늘 포함 3회 이상 */}
+                {studentCheck.studentStatus === 0 &&
+                 studentCheck.pastAttendanceCount !== null &&
+                 (studentCheck.pastAttendanceCount >= 3 ||
+                  (studentCheck.status && studentCheck.pastAttendanceCount >= 2)) && (
+                    <span style={{
+                        display: 'block',
+                        fontSize: '9px',
+                        fontWeight: 'bold',
+                        color: '#e65100',
+                        marginTop: '2px',
+                        lineHeight: 1
+                    }}>🎉등반!</span>
+                )}
             </button>
 
             {/* 코멘츠 입력 */}

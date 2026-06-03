@@ -56,13 +56,6 @@ export const NewFriendCumulativeModal = ({ isOpen, onClose }: Props) => {
     const activeNewFriends = sheetData?.students.filter(s => s.status === 0) || [];
     const promotedStudents = sheetData?.students.filter(s => s.status === 1) || [];
 
-    // 날짜 셀 배경색: registeredAt=연두, promotedAt(≠registeredAt)=노랑
-    const getDateCellBg = (date: string, s: StudentAttendanceSummary): string | undefined => {
-        if (s.registeredAt === date) return '#e8f5e9';
-        if (s.promotedAt && s.promotedAt !== s.registeredAt && s.promotedAt === date) return '#fff9c4';
-        return undefined;
-    };
-
     const renderRows = (students: StudentAttendanceSummary[], showPromotedLabel = false) =>
         students.map((student, idx) => (
             <tr key={`${student.name}-${idx}`}>
@@ -71,14 +64,15 @@ export const NewFriendCumulativeModal = ({ isOpen, onClose }: Props) => {
                     {showPromotedLabel && (
                         <span style={{ fontSize: '10px', color: '#adb5bd', marginLeft: '4px' }}>(등반)</span>
                     )}
+                    {/* 새친구이고 3회 이상 출석 → 등반 필요 */}
+                    {!showPromotedLabel && student.attendances.length >= 3 && (
+                        <span style={{ fontSize: '10px', color: '#e65100', background: '#fff3e0', padding: '1px 5px', borderRadius: '8px', marginLeft: '4px' }}>🎉등반!</span>
+                    )}
                 </td>
                 {sheetData!.headerDates.map(date => {
                     const isPresent = student.attendances.includes(date);
-                    const bg = getDateCellBg(date, student);
                     return (
-                        <td key={date}
-                            className={isPresent ? styles.present : styles.absent}
-                            style={bg ? { backgroundColor: bg } : undefined}>
+                        <td key={date} className={isPresent ? styles.present : styles.absent}>
                             {isPresent ? 'O' : ''}
                         </td>
                     );
@@ -102,18 +96,6 @@ export const NewFriendCumulativeModal = ({ isOpen, onClose }: Props) => {
                         </select>
                         <button onClick={onClose} className={styles.closeBtn}>닫기</button>
                     </div>
-                </div>
-
-                {/* 범례 */}
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '12px', color: '#495057' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ width: '14px', height: '14px', backgroundColor: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: '2px', display: 'inline-block' }} />
-                        첫 등록일
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ width: '14px', height: '14px', backgroundColor: '#fff9c4', border: '1px solid #f9a825', borderRadius: '2px', display: 'inline-block' }} />
-                        등반일
-                    </span>
                 </div>
 
                 {loading ? (

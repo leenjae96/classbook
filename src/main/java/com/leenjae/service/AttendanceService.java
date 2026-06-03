@@ -95,6 +95,18 @@ public class AttendanceService {
                                     a -> a
                             ));
 
+            // 새친구(status=0)의 오늘 이전 출석 횟수 — 등반 판단용
+            List<Long> newFriendIds = students.stream()
+                    .filter(s -> s.getStatus() == Status.NEW.getCode())
+                    .map(Student::getId)
+                    .toList();
+            Map<Long, Integer> pastCountMap = new HashMap<>();
+            if (!newFriendIds.isEmpty()) {
+                studentAttendanceRepository
+                        .countPastAttendanceByStudentIds(newFriendIds, date)
+                        .forEach(row -> pastCountMap.put((Long) row[0], ((Long) row[1]).intValue()));
+            }
+
             studentAttendanceList = students.stream()
                     .filter(student -> {
                         return (student.getStatus() == Status.NEW.getCode() ||
@@ -102,6 +114,9 @@ public class AttendanceService {
                     })
                     .map(student -> {
                         StudentAttendance sa = studentAttendanceMap.get(student.getId());
+                        Integer pastCount = student.getStatus() == Status.NEW.getCode()
+                                ? pastCountMap.getOrDefault(student.getId(), 0)
+                                : null;
                         if (sa == null) {
                             return AttendanceDto.StudentAttendance.builder()
                                     .id(student.getId())
@@ -109,6 +124,7 @@ public class AttendanceService {
                                     .studentStatus(student.getStatus())
                                     .status(false)
                                     .comments(null)
+                                    .pastAttendanceCount(pastCount)
                                     .build();
                         } else {
                             return AttendanceDto.StudentAttendance.builder()
@@ -117,6 +133,7 @@ public class AttendanceService {
                                     .studentStatus(student.getStatus())
                                     .status(sa.getStatus())
                                     .comments(sa.getComments())
+                                    .pastAttendanceCount(pastCount)
                                     .build();
                         }
                     })

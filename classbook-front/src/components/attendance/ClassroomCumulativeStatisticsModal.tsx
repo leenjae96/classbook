@@ -56,13 +56,6 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
     const normalStudents = sheetData?.students.filter(s => s.status !== 0) || [];
     const newStudents = sheetData?.students.filter(s => s.status === 0) || [];
 
-    // 날짜 셀 배경색: registeredAt=연두, promotedAt(≠registeredAt)=노랑
-    const getDateCellBg = (date: string, s: StudentAttendanceSummary): string | undefined => {
-        if (s.registeredAt === date) return '#e8f5e9';
-        if (s.promotedAt && s.promotedAt !== s.registeredAt && s.promotedAt === date) return '#fff9c4';
-        return undefined;
-    };
-
     const getClassName = () => {
         if (grade === 0) return classNo === '0' ? '1부 여자반' : '1부 남자반';
         return `${grade}학년 ${classNo}반`;
@@ -109,11 +102,8 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
                                     <td className={styles.stickyName}>{student.name}</td>
                                     {sheetData.headerDates.map(date => {
                                         const isPresent = student.attendances.includes(date);
-                                        const bg = getDateCellBg(date, student);
                                         return (
-                                            <td key={date}
-                                                className={isPresent ? styles.present : styles.absent}
-                                                style={bg ? { backgroundColor: bg } : undefined}>
+                                            <td key={date} className={isPresent ? styles.present : styles.absent}>
                                                 {isPresent ? 'O' : ''}
                                             </td>
                                         );
@@ -131,14 +121,16 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
                                     </tr>
                                     {newStudents.map((student, idx) => (
                                         <tr key={`new-${idx}`}>
-                                            <td className={styles.stickyName}>{student.name}</td>
+                                            <td className={styles.stickyName}>
+                                                {student.name}
+                                                {student.attendances.length >= 3 && (
+                                                    <span style={{ fontSize: '10px', color: '#e65100', background: '#fff3e0', padding: '1px 5px', borderRadius: '8px', marginLeft: '4px' }}>🎉등반!</span>
+                                                )}
+                                            </td>
                                             {sheetData.headerDates.map(date => {
                                                 const isPresent = student.attendances.includes(date);
-                                                const bg = getDateCellBg(date, student);
                                                 return (
-                                                    <td key={date}
-                                                        className={isPresent ? styles.present : styles.absent}
-                                                        style={bg ? { backgroundColor: bg } : undefined}>
+                                                    <td key={date} className={isPresent ? styles.present : styles.absent}>
                                                         {isPresent ? 'O' : ''}
                                                     </td>
                                                 );

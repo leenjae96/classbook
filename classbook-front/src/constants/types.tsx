@@ -44,6 +44,7 @@ export interface StudentAttendance {
     studentStatus: number;
     status: boolean;
     comments: string;
+    pastAttendanceCount: number | null; // 새친구(status=0)만 값 있음
 }
 export interface TeacherReport {
     id: number;
