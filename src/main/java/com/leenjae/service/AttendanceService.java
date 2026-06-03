@@ -259,7 +259,9 @@ public class AttendanceService {
                                     .status(sa.status())
                                     .build()
                     );
-                } else {
+                } else if (sa.studentStatus() != Status.NEW.getCode()) {
+                    // 새친구(status=0)는 기존 데이터가 있으면 덮어쓰지 않음
+                    // — 새친구 출석부에서 이미 저장된 값을 반별/행정 출석부 제출이 덮어쓰는 문제 방지
                     existingData.get().update(
                             sa.status(),
                             sa.comments()
