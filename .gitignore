@@ -45,3 +45,8 @@ bin/
 .idea
 /src/main/resources/static/
 /classbook-front/node_modules
+
+# 민감 정보 — 절대 커밋 금지
+src/main/resources/application*.yml
+src/main/resources/application*.yaml
+src/main/resources/application.properties
