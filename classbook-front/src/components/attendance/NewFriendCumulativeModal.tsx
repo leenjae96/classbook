@@ -19,11 +19,9 @@ interface CumSheet {
 interface Props {
     isOpen: boolean;
     onClose: () => void;
-    grade: number;
-    classNo: string;
 }
 
-export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, classNo }: Props) => {
+export const NewFriendCumulativeModal = ({ isOpen, onClose }: Props) => {
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
     const [sheetData, setSheetData] = useState<CumSheet | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
@@ -38,23 +36,25 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
                 const currentYear = new Date().getFullYear();
                 const endDate = selectedYear === currentYear ? getMostRecentSunday() : `${selectedYear}-12-31`;
 
-                const data: CumSheet = await apiFetch(`/api/attendances/cumulative-stats?grade=${grade}&classNo=${classNo}&startDate=${startDate}&endDate=${endDate}`);
+                const data: CumSheet = await apiFetch(
+                    `/api/attendances/new-friend/cumulative-stats?startDate=${startDate}&endDate=${endDate}`
+                );
                 setSheetData(data);
             } catch (error) {
-                console.error("반 누적 통계 로드 실패:", error);
+                console.error("새친구 누적 통계 로드 실패:", error);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchStats();
-    }, [isOpen, selectedYear, grade, classNo]);
+    }, [isOpen, selectedYear]);
 
     if (!isOpen) return null;
 
-    // ✨ 학생 데이터 분리
-    const normalStudents = sheetData?.students.filter(s => s.status !== 0) || [];
-    const newStudents = sheetData?.students.filter(s => s.status === 0) || [];
+    // 현재 새친구 / 등반 완료 분리
+    const activeNewFriends = sheetData?.students.filter(s => s.status === 0) || [];
+    const promotedStudents = sheetData?.students.filter(s => s.status === 1) || [];
 
     // 날짜 셀 배경색: registeredAt=연두, promotedAt(≠registeredAt)=노랑
     const getDateCellBg = (date: string, s: StudentAttendanceSummary): string | undefined => {
@@ -63,17 +63,34 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
         return undefined;
     };
 
-    const getClassName = () => {
-        if (grade === 0) return classNo === '0' ? '1부 여자반' : '1부 남자반';
-        return `${grade}학년 ${classNo}반`;
-    };
+    const renderRows = (students: StudentAttendanceSummary[], showPromotedLabel = false) =>
+        students.map((student, idx) => (
+            <tr key={`${student.name}-${idx}`}>
+                <td className={styles.stickyName}>
+                    {student.name}
+                    {showPromotedLabel && (
+                        <span style={{ fontSize: '10px', color: '#adb5bd', marginLeft: '4px' }}>(등반)</span>
+                    )}
+                </td>
+                {sheetData!.headerDates.map(date => {
+                    const isPresent = student.attendances.includes(date);
+                    const bg = getDateCellBg(date, student);
+                    return (
+                        <td key={date}
+                            className={isPresent ? styles.present : styles.absent}
+                            style={bg ? { backgroundColor: bg } : undefined}>
+                            {isPresent ? 'O' : ''}
+                        </td>
+                    );
+                })}
+            </tr>
+        ));
 
     return (
         <div className={styles.overlay}>
             <div className={styles.modalContent}>
                 <div className={styles.header}>
-                    <h3>{getClassName()} 출석 현황</h3>
-
+                    <h3>🌱 새친구 누적 출석</h3>
                     <div style={{ display: 'flex', gap: '8px' }}>
                         <select
                             value={selectedYear}
@@ -85,6 +102,18 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
                         </select>
                         <button onClick={onClose} className={styles.closeBtn}>닫기</button>
                     </div>
+                </div>
+
+                {/* 범례 */}
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '12px', color: '#495057' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '14px', height: '14px', backgroundColor: '#e8f5e9', border: '1px solid #a5d6a7', borderRadius: '2px', display: 'inline-block' }} />
+                        첫 등록일
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ width: '14px', height: '14px', backgroundColor: '#fff9c4', border: '1px solid #f9a825', borderRadius: '2px', display: 'inline-block' }} />
+                        등반일
+                    </span>
                 </div>
 
                 {loading ? (
@@ -103,48 +132,18 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
                             </tr>
                             </thead>
                             <tbody>
-                            {/* 1. 일반 학생 */}
-                            {normalStudents.map((student, idx) => (
-                                <tr key={`normal-${idx}`}>
-                                    <td className={styles.stickyName}>{student.name}</td>
-                                    {sheetData.headerDates.map(date => {
-                                        const isPresent = student.attendances.includes(date);
-                                        const bg = getDateCellBg(date, student);
-                                        return (
-                                            <td key={date}
-                                                className={isPresent ? styles.present : styles.absent}
-                                                style={bg ? { backgroundColor: bg } : undefined}>
-                                                {isPresent ? 'O' : ''}
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            ))}
+                            {/* 현재 새친구 */}
+                            {renderRows(activeNewFriends)}
 
-                            {/* 2. 새친구 (있는 경우에만 구분선과 함께 출력) */}
-                            {newStudents.length > 0 && (
+                            {/* 등반 완료 구분선 */}
+                            {promotedStudents.length > 0 && (
                                 <>
                                     <tr className={styles.dividerRow}>
                                         <td colSpan={sheetData.headerDates.length + 1}>
-                                            🌱 새친구
+                                            🎉 등반 완료
                                         </td>
                                     </tr>
-                                    {newStudents.map((student, idx) => (
-                                        <tr key={`new-${idx}`}>
-                                            <td className={styles.stickyName}>{student.name}</td>
-                                            {sheetData.headerDates.map(date => {
-                                                const isPresent = student.attendances.includes(date);
-                                                const bg = getDateCellBg(date, student);
-                                                return (
-                                                    <td key={date}
-                                                        className={isPresent ? styles.present : styles.absent}
-                                                        style={bg ? { backgroundColor: bg } : undefined}>
-                                                        {isPresent ? 'O' : ''}
-                                                    </td>
-                                                );
-                                            })}
-                                        </tr>
-                                    ))}
+                                    {renderRows(promotedStudents, true)}
                                 </>
                             )}
                             </tbody>

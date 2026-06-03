@@ -77,7 +77,9 @@ public class AttendanceDto {
             Integer grade,
             String classNo,
             String name,
-            LocalDate attendanceDate
+            LocalDate attendanceDate,
+            LocalDate registeredAt,
+            LocalDate promotedAt
     ) {}
 
     public record CumulativeSheet(
@@ -101,6 +103,8 @@ public class AttendanceDto {
             Integer grade,
             String classNo,
             String name,
-            List<String> attendances // ["01/04", "01/11", ...]
+            List<String> attendances, // ["01/04", "01/11", ...]
+            String registeredAt,      // "MM/dd" 포맷, null 가능
+            String promotedAt         // "MM/dd" 포맷, registeredAt 과 같으면 등반 이력 없음
     ) {}
 }

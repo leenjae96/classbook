@@ -118,4 +118,12 @@ public class AttendanceController {
             ) {
         return attendanceService.getCumulativeStatistics(startDate, endDate, grade, classNo);
     }
+
+    @GetMapping("/new-friend/cumulative-stats")
+    public AttendanceDto.CumulativeSheet getNewFriendCumulativeStats(
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate
+    ) {
+        return attendanceService.getNewFriendCumulativeStatistics(startDate, endDate);
+    }
 }

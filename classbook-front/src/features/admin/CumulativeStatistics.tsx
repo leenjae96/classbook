@@ -11,6 +11,8 @@ interface StudentAttendanceSummary {
     classNo: string | null;
     name: string;
     attendances: string[];
+    registeredAt: string | null;  // "MM/dd" — 첫 등록일
+    promotedAt: string | null;    // "MM/dd" — 등반일 (registeredAt 과 같으면 등반 이력 없음)
 }
 
 interface CumulativeSheet {
@@ -127,9 +129,20 @@ const CumulativeStatistics = () => {
     const processedRegularStudents = useMemo(() =>
         buildRowSpans(sheetData?.students.filter(s => s.status === 1) ?? []), [sheetData]);
     const processedNewFriends = useMemo(() =>
-        buildRowSpans(sheetData?.students.filter(s => s.status === 0) ?? []), [sheetData]);
+        // status=0(현재 새친구) + status=1이면서 registeredAt≠promotedAt (등반 이력 있는 학생)
+        buildRowSpans(sheetData?.students.filter(s =>
+            s.status === 0 ||
+            (s.status === 1 && s.registeredAt !== null && s.registeredAt !== s.promotedAt)
+        ) ?? []), [sheetData]);
     const specialClassStudents = useMemo(() =>
         sheetData?.students.filter(s => s.status === 3) ?? [], [sheetData]);
+
+    // 날짜 셀 배경색: registeredAt=연두, promotedAt(≠registeredAt)=노랑
+    const getDateCellBg = (date: string, s: StudentAttendanceSummary): string | undefined => {
+        if (s.registeredAt === date) return '#e8f5e9';
+        if (s.promotedAt && s.promotedAt !== s.registeredAt && s.promotedAt === date) return '#fff9c4';
+        return undefined;
+    };
 
     const handleDownloadExcel = () => {
         if (!tableRef.current) return;
@@ -153,7 +166,7 @@ const CumulativeStatistics = () => {
     };
 
     // 일반학생/새친구 공통 행 렌더링 (학년/반/이름 3개 틀고정)
-    const renderStudentRows = (processed: ProcessedStudent[], headerDates: string[]) =>
+    const renderStudentRows = (processed: ProcessedStudent[], headerDates: string[], showPromotedLabel = false) =>
         processed.map((student, idx) => (
             <tr key={`${student.grade}-${student.classNo}-${student.name}-${idx}`}>
                 {student.rowSpans.grade > 0 && (
@@ -168,11 +181,17 @@ const CumulativeStatistics = () => {
                 )}
                 <td className={styles.stickyStudentName} style={{ fontWeight: '500' }}>
                     {student.name}
+                    {showPromotedLabel && student.status === 1 && (
+                        <span style={{ fontSize: '10px', color: '#adb5bd', marginLeft: '4px' }}>(등반)</span>
+                    )}
                 </td>
                 {headerDates.map(date => {
                     const isPresent = student.attendances.includes(date);
+                    const bg = getDateCellBg(date, student);
                     return (
-                        <td key={date} className={isPresent ? styles.present : styles.absent}>
+                        <td key={date}
+                            className={isPresent ? styles.present : styles.absent}
+                            style={bg ? { backgroundColor: bg } : undefined}>
                             {isPresent ? 'O' : ''}
                         </td>
                     );
@@ -244,7 +263,8 @@ const CumulativeStatistics = () => {
         }
 
         // 일반학생 / 새친구 탭 (학년/반/이름 3개 틀고정)
-        const processed = activeTab === 'student' ? processedRegularStudents : processedNewFriends;
+        const isNewFriendTab = activeTab === 'newFriend';
+        const processed = isNewFriendTab ? processedNewFriends : processedRegularStudents;
         return (
             <div className={styles.tableWrapper}>
                 <table ref={tableRef} className={styles.statsTable}>
@@ -257,7 +277,7 @@ const CumulativeStatistics = () => {
                     </tr>
                     </thead>
                     <tbody>
-                    {renderStudentRows(processed, sheetData.headerDates)}
+                    {renderStudentRows(processed, sheetData.headerDates, isNewFriendTab)}
                     </tbody>
                 </table>
             </div>

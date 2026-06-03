@@ -91,13 +91,13 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
 
     @Query("""
                 SELECT new com.leenjae.dto.AttendanceDto$RawCumulativeStats(
-                    s.id, s.status, c.grade, c.classNo, s.name, sa.date
+                    s.id, s.status, c.grade, c.classNo, s.name, sa.date, s.registeredAt, s.promotedAt
                 )
                 FROM Student s
                 LEFT JOIN s.classroom c
-                LEFT JOIN StudentAttendance sa ON 
-                            sa.student = s AND 
-                            sa.status = true AND 
+                LEFT JOIN StudentAttendance sa ON
+                            sa.student = s AND
+                            sa.status = true AND
                             sa.date >= :startDate AND
                             sa.date <= :endDate
                 ORDER BY s.status ASC, c.grade ASC, CAST(c.classNo AS int) ASC, s.name ASC
@@ -110,13 +110,13 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
 
     @Query("""
                 SELECT new com.leenjae.dto.AttendanceDto$RawCumulativeStats(
-                    s.id, s.status, c.grade, c.classNo, s.name, sa.date
+                    s.id, s.status, c.grade, c.classNo, s.name, sa.date, s.registeredAt, s.promotedAt
                 )
                 FROM Student s
                 JOIN s.classroom c
-                LEFT JOIN StudentAttendance sa ON 
-                            sa.student = s AND 
-                            sa.status = true AND 
+                LEFT JOIN StudentAttendance sa ON
+                            sa.student = s AND
+                            sa.status = true AND
                             sa.date >= :startDate AND
                             sa.date <= :endDate
                 WHERE c.grade = :grade AND c.classNo = :classNo AND s.status != 3
@@ -125,6 +125,27 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
     List<AttendanceDto.RawCumulativeStats> getRawCumulativeStatsByClassroom(
             @Param("grade") Integer grade,
             @Param("classNo") String classNo,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
+    );
+
+    // 새친구 누적 통계 전용: 현재 새친구(status=0) + 등반 이력 있는 학생(status=1, registeredAt≠promotedAt)
+    @Query("""
+                SELECT new com.leenjae.dto.AttendanceDto$RawCumulativeStats(
+                    s.id, s.status, c.grade, c.classNo, s.name, sa.date, s.registeredAt, s.promotedAt
+                )
+                FROM Student s
+                LEFT JOIN s.classroom c
+                LEFT JOIN StudentAttendance sa ON
+                            sa.student = s AND
+                            sa.status = true AND
+                            sa.date >= :startDate AND
+                            sa.date <= :endDate
+                WHERE s.status = 0 OR
+                      (s.status = 1 AND s.registeredAt IS NOT NULL AND s.promotedAt IS NOT NULL AND s.registeredAt <> s.promotedAt)
+                ORDER BY s.status ASC, c.grade ASC, s.name ASC
+            """)
+    List<AttendanceDto.RawCumulativeStats> getRawCumulativeStatsForNewFriends(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );

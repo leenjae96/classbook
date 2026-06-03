@@ -3,6 +3,7 @@ import {StudentAttendanceRow} from "../../components/attendance/StudentAttendanc
 import {useState} from "react";
 import type {StudentAttendance, StudentInfo} from "../../constants/types.tsx";
 import {StudentInfoModal} from "../../components/attendance/StudentInfoModal.tsx";
+import {NewFriendCumulativeModal} from "../../components/attendance/NewFriendCumulativeModal.tsx";
 import {apiFetch} from "../../hooks/api.ts";
 import {DateSelector} from "../../components/common/DateSelector.tsx";
 import {getMostRecentSunday, snapToSunday} from "../../util/dateUtils.tsx";
@@ -24,9 +25,12 @@ const NewFriend = () => {
 
     const isLocked = new Date().getDay() !== 0 || selectedDate !== new Date().toLocaleDateString('en-CA');
 
-    // 모달 상태 관리
+    // 학생 정보 모달 상태
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [targetStudent, setTargetStudent] = useState<StudentInfo | null>(null);
+
+    // 누적 통계 모달 상태
+    const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
     const handleEditClick = async (student: StudentAttendance) => {
         try {
@@ -47,7 +51,15 @@ const NewFriend = () => {
 
     return (
         <div className="content">
-            <BackButton/>
+            <div className="header-buttons">
+                <BackButton />
+                <button
+                    className="stats-button"
+                    onClick={() => setIsStatsModalOpen(true)}
+                >
+                    누적 통계
+                </button>
+            </div>
 
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                 <h4>새친구 관리</h4>
@@ -151,6 +163,11 @@ const NewFriend = () => {
                         alert("저장에 실패했습니다. 다시 시도해주세요.");
                     }
                 }}
+            />
+
+            <NewFriendCumulativeModal
+                isOpen={isStatsModalOpen}
+                onClose={() => setIsStatsModalOpen(false)}
             />
         </div>
     );
