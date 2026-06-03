@@ -486,11 +486,63 @@ public class AttendanceService {
                                             .map(date -> date.format(formatter))
                                             .toList();
 
+                            String registeredAtStr = first.registeredAt() != null
+                                    ? first.registeredAt().format(formatter) : null;
+                            String promotedAtStr = first.promotedAt() != null
+                                    ? first.promotedAt().format(formatter) : null;
+
                             return new AttendanceDto.StudentAttendanceSummary(
-                                    first.studentStatus(), first.grade(), first.classNo(), first.name(), attendances
+                                    first.studentStatus(), first.grade(), first.classNo(), first.name(), attendances,
+                                    registeredAtStr, promotedAtStr
                             );
                         })
                         .toList();
+        return new AttendanceDto.CumulativeSheet(headerDates, students);
+    }
+
+    // 새친구 누적통계 (현재 새친구 + 등반 이력 있는 학생)
+    public AttendanceDto.CumulativeSheet getNewFriendCumulativeStatistics(LocalDate startDate, LocalDate endDate) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
+
+        List<AttendanceDto.RawCumulativeStats> rawData =
+                studentAttendanceRepository.getRawCumulativeStatsForNewFriends(startDate, endDate);
+
+        List<String> headerDates = rawData.stream()
+                .map(AttendanceDto.RawCumulativeStats::attendanceDate)
+                .filter(Objects::nonNull)
+                .distinct()
+                .sorted()
+                .map(date -> date.format(formatter))
+                .toList();
+
+        Map<Long, List<AttendanceDto.RawCumulativeStats>> groupedByStudent =
+                rawData.stream()
+                        .collect(Collectors.groupingBy(
+                                AttendanceDto.RawCumulativeStats::studentId,
+                                LinkedHashMap::new,
+                                Collectors.toList()
+                        ));
+
+        List<AttendanceDto.StudentAttendanceSummary> students =
+                groupedByStudent.values().stream()
+                        .map(list -> {
+                            AttendanceDto.RawCumulativeStats first = list.getFirst();
+                            List<String> attendances = list.stream()
+                                    .map(AttendanceDto.RawCumulativeStats::attendanceDate)
+                                    .filter(Objects::nonNull)
+                                    .map(date -> date.format(formatter))
+                                    .toList();
+                            String registeredAtStr = first.registeredAt() != null
+                                    ? first.registeredAt().format(formatter) : null;
+                            String promotedAtStr = first.promotedAt() != null
+                                    ? first.promotedAt().format(formatter) : null;
+                            return new AttendanceDto.StudentAttendanceSummary(
+                                    first.studentStatus(), first.grade(), first.classNo(), first.name(), attendances,
+                                    registeredAtStr, promotedAtStr
+                            );
+                        })
+                        .toList();
+
         return new AttendanceDto.CumulativeSheet(headerDates, students);
     }
 
