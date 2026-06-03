@@ -44,8 +44,7 @@
 
 .tableWrapper {
     width: 100%;
-    max-height: calc(100vh - 200px);
-    overflow: auto;
+    overflow-x: auto; /* 가로만 스크롤 — 세로는 페이지 자체가 담당 */
     border: 1px solid #dee2e6;
     border-radius: 8px;
     background-color: #fff;
@@ -78,9 +77,24 @@
     border-bottom: 2px solid #dee2e6;
 }
 
-.colName {
+.colClassroom {
     position: sticky;
     left: 0;
+    min-width: 60px;
+    width: 60px;
+    background-color: #fff;
+    border-right: 1px solid #e9ecef;
+    z-index: 5;
+}
+
+.reportTable thead th.colClassroom {
+    z-index: 20;
+    background-color: #e9ecef;
+}
+
+.colName {
+    position: sticky;
+    left: 60px;
     min-width: 70px;
     width: 70px;
     font-weight: 500;

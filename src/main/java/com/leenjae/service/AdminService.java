@@ -99,13 +99,27 @@ public class AdminService {
     }
 
     public List<AdminDto.TeacherWeeklyReportItem> getTeacherWeeklyReport(LocalDate date) {
+        // 선생님ID → Classroom 맵 (N+1 방지)
+        Map<Long, Classroom> classroomByTeacherId = classroomRepository.findAllWithTeacher()
+                .stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        c -> c.getTeacher().getId(),
+                        c -> c,
+                        (a, b) -> a
+                ));
+
         return teacherRepository.findAll()
                 .stream()
                 .filter(t -> !t.getRoles().contains(TeacherRoles.PASTOR))
-                .sorted(Comparator.comparing(Teacher::getName))
+                .sorted(Comparator
+                        .comparingInt((Teacher t) -> classroomGradeSortKey(classroomByTeacherId.get(t.getId())))
+                        .thenComparingInt(t -> classroomClassNoSortKey(classroomByTeacherId.get(t.getId())))
+                        .thenComparing(Teacher::getName))
                 .map(t -> {
                     TeacherReport report = teacherReportRepository.findByTeacherIdAndDate(t.getId(), date);
+                    String classroom = formatClassroomLabel(classroomByTeacherId.get(t.getId()));
                     return new AdminDto.TeacherWeeklyReportItem(
+                            classroom,
                             t.getName(),
                             report != null ? report.getDate() : null,
                             report != null ? report.getWorship() : null,
@@ -115,6 +129,28 @@ public class AdminService {
                     );
                 })
                 .toList();
+    }
+
+    private String formatClassroomLabel(Classroom classroom) {
+        if (classroom == null) return "-";
+        int grade = classroom.getGrade();
+        String classNo = classroom.getClassNo();
+        if (grade == 0) return "1부" + ("0".equals(classNo) ? "여" : "남");
+        return grade + "-" + classNo;
+    }
+
+    // grade=0(1부)은 1/2/3학년 뒤, classroom 없으면 맨 뒤
+    private int classroomGradeSortKey(Classroom classroom) {
+        if (classroom == null) return 100;
+        return classroom.getGrade() == 0 ? 10 : classroom.getGrade();
+    }
+
+    // 같은 학년반 내 반번호 정렬 (1부의 경우 남=1 before 여=0)
+    private int classroomClassNoSortKey(Classroom classroom) {
+        if (classroom == null) return 999;
+        String classNo = classroom.getClassNo();
+        if (classroom.getGrade() == 0) return "0".equals(classNo) ? 1 : 0;
+        try { return Integer.parseInt(classNo); } catch (NumberFormatException e) { return 999; }
     }
 
     public AdminDto.HistoryResponse getHistories(LocalDate startDate, LocalDate endDate) {
