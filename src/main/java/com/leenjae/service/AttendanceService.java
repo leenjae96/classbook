@@ -259,7 +259,9 @@ public class AttendanceService {
                                     .status(sa.status())
                                     .build()
                     );
-                } else {
+                } else if (sa.studentStatus() != Status.NEW.getCode() || !existingData.get().getStatus()) {
+                    // 새친구(status=0)는 기존 데이터가 이미 출석(true)이면 덮어쓰지 않음
+                    // — 기존 데이터가 결석(false)인 경우는 최신 데이터로 업데이트 허용
                     existingData.get().update(
                             sa.status(),
                             sa.comments()
