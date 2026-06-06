@@ -56,6 +56,12 @@ export const NewFriendCumulativeModal = ({ isOpen, onClose }: Props) => {
     const activeNewFriends = sheetData?.students.filter(s => s.status === 0) || [];
     const promotedStudents = sheetData?.students.filter(s => s.status === 1) || [];
 
+    // 올해 실제 등록일(01/01 placeholder 제외)이면 연두색
+    const getRegisteredAtBg = (date: string, s: StudentAttendanceSummary): string | undefined => {
+        if (s.registeredAt && s.registeredAt !== '01/01' && s.registeredAt === date) return '#e8f5e9';
+        return undefined;
+    };
+
     const renderRows = (students: StudentAttendanceSummary[], showPromotedLabel = false) =>
         students.map((student, idx) => (
             <tr key={`${student.name}-${idx}`}>
@@ -71,8 +77,11 @@ export const NewFriendCumulativeModal = ({ isOpen, onClose }: Props) => {
                 </td>
                 {sheetData!.headerDates.map(date => {
                     const isPresent = student.attendances.includes(date);
+                    const bg = getRegisteredAtBg(date, student);
                     return (
-                        <td key={date} className={isPresent ? styles.present : styles.absent}>
+                        <td key={date}
+                            className={isPresent ? styles.present : styles.absent}
+                            style={bg ? { backgroundColor: bg } : undefined}>
                             {isPresent ? 'O' : ''}
                         </td>
                     );
