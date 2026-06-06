@@ -137,6 +137,14 @@ const CumulativeStatistics = () => {
     const specialClassStudents = useMemo(() =>
         sheetData?.students.filter(s => s.status === 3) ?? [], [sheetData]);
 
+    // 올해 실제 등록일(01/01 placeholder 제외)이 헤더 날짜와 일치하면 연두색
+    const getRegisteredAtBg = (date: string, s: StudentAttendanceSummary): string | undefined => {
+        if (s.registeredAt && s.registeredAt !== '01/01' && s.registeredAt === date) {
+            return '#e8f5e9';
+        }
+        return undefined;
+    };
+
     const handleDownloadExcel = () => {
         if (!tableRef.current) return;
         const { endDate } = getDateRange();
@@ -183,8 +191,11 @@ const CumulativeStatistics = () => {
                 </td>
                 {headerDates.map(date => {
                     const isPresent = student.attendances.includes(date);
+                    const bg = getRegisteredAtBg(date, student);
                     return (
-                        <td key={date} className={isPresent ? styles.present : styles.absent}>
+                        <td key={date}
+                            className={isPresent ? styles.present : styles.absent}
+                            style={bg ? { backgroundColor: bg } : undefined}>
                             {isPresent ? 'O' : ''}
                         </td>
                     );
