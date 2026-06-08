@@ -1,3 +1,8 @@
+/* 다크모드 강제 무효화 — 시스템 다크모드여도 항상 라이트모드로 렌더링 */
+:root {
+    color-scheme: light;
+}
+
 /* 전체 레이아웃 뼈대 */
 .layout-container {
     display: flex;

@@ -56,6 +56,12 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
     const normalStudents = sheetData?.students.filter(s => s.status !== 0) || [];
     const newStudents = sheetData?.students.filter(s => s.status === 0) || [];
 
+    // 올해 실제 등록일(01/01 placeholder 제외)이면 연두색
+    const getRegisteredAtBg = (date: string, s: StudentAttendanceSummary): string | undefined => {
+        if (s.registeredAt && s.registeredAt !== '01/01' && s.registeredAt === date) return '#e8f5e9';
+        return undefined;
+    };
+
     const getClassName = () => {
         if (grade === 0) return classNo === '0' ? '1부 여자반' : '1부 남자반';
         return `${grade}학년 ${classNo}반`;
@@ -129,8 +135,11 @@ export const ClassroomCumulativeStatisticsModal = ({ isOpen, onClose, grade, cla
                                             </td>
                                             {sheetData.headerDates.map(date => {
                                                 const isPresent = student.attendances.includes(date);
+                                                const bg = getRegisteredAtBg(date, student);
                                                 return (
-                                                    <td key={date} className={isPresent ? styles.present : styles.absent}>
+                                                    <td key={date}
+                                                        className={isPresent ? styles.present : styles.absent}
+                                                        style={bg ? { backgroundColor: bg } : undefined}>
                                                         {isPresent ? 'O' : ''}
                                                     </td>
                                                 );
