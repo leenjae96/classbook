@@ -118,6 +118,7 @@ const NewFriend = () => {
                                 studentCheck={studentCheck}
                                 onToggle={toggleStudentAttendance}
                                 onCommentChange={updateStudentAttendanceComment}
+                                sheetDate={selectedDate}
                                 renderRightAction={(s) => (
                                     <button
                                         onClick={() => handleEditClick(s)}

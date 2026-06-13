@@ -32,7 +32,8 @@ public class AttendanceDto {
             Integer studentStatus,
             Boolean status,
             String comments,
-            Integer pastAttendanceCount // 새친구(status=0)에만 값 있음, 나머지는 null
+            Integer pastAttendanceCount,    // 새친구(status=0)에만 값 있음, 나머지는 null (시트 날짜 이전 출석 횟수)
+            LocalDate pastAttendanceLastDate // 시트 날짜 이전 가장 최근 출석일 (없으면 null)
     ) {}
 
     @Builder

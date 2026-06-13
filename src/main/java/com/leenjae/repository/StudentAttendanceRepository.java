@@ -30,9 +30,9 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
 
     List<StudentAttendance> findByStudentIdInAndDate(List<Long> studentIds, LocalDate date);
 
-    // 새친구 등반 판단용: 특정 날짜 이전의 출석 횟수 (오늘 제외)
+    // 새친구 등반 판단용: 특정 날짜 이전의 출석 횟수 + 가장 최근 출석일 (오늘 제외)
     @Query("""
-        SELECT sa.student.id, COUNT(sa)
+        SELECT sa.student.id, COUNT(sa), MAX(sa.date)
         FROM StudentAttendance sa
         WHERE sa.student.id IN :studentIds
           AND sa.status = true
