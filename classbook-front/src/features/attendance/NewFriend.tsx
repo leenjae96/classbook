@@ -142,7 +142,7 @@ const NewFriend = () => {
             <StudentInfoModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-
+                mode="newFriend"
                 studentInfo={targetStudent}
                 onSave={async (data) => {
                     try {
@@ -150,10 +150,12 @@ const NewFriend = () => {
                         const isEdit = !!data.id;
                         const method = isEdit ? 'PUT' : 'POST';
                         const url = '/api/attendances/new-friend';
+                        // 백엔드(EditStudentInfo)는 수정 사유를 comments 로 받음 → editReason 매핑
+                        const { editReason, ...rest } = data;
                         await fetch(url, {
                             method: method,
                             headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify(data),
+                            body: JSON.stringify({ ...rest, comments: editReason }),
                         });
                         alert(isEdit ? '정보가 수정되었습니다.' : '새친구가 등록되었습니다.');
                         setIsModalOpen(false);

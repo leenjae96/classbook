@@ -44,20 +44,35 @@ const StudentDetailPage = () => {
     // 3. 데이터를 '학년 반' 문자열을 Key로 하여 그룹핑 (화면 렌더링용)
     const groupedStudents = useMemo(() => {
         const groups: Record<string, StudentSummary[]> = {};
+        const removed: StudentSummary[] = []; // 별분(status=3) → 별도 그룹
 
         students.forEach(student => {
-            const gradeName = student.grade === 0 ? '1부' : `${student.grade}학년`;
-            const className = student.grade === 0
-                ? (student.classNo === '0' ? '여자반' : '남자반')
-                : `${student.classNo}반`;
+            if (student.status === 3) {
+                removed.push(student);
+                return;
+            }
 
-            const groupName = `${gradeName} ${className}`;
+            // 학년/반 정보가 없는 학생은 '미지정' 그룹으로
+            const groupName = (student.grade === null || student.grade === undefined)
+                ? '미지정'
+                : (() => {
+                    const gradeName = student.grade === 0 ? '1부' : `${student.grade}학년`;
+                    const className = student.grade === 0
+                        ? (student.classNo === '0' ? '여자반' : '남자반')
+                        : (student.classNo ? `${student.classNo}반` : '반 미지정');
+                    return `${gradeName} ${className}`;
+                })();
 
             if (!groups[groupName]) {
                 groups[groupName] = [];
             }
             groups[groupName].push(student);
         });
+
+        // 별분반은 항상 맨 아래에 묶어서 표시
+        if (removed.length > 0) {
+            groups['별분반'] = removed;
+        }
 
         return groups;
     }, [students]);
@@ -67,7 +82,7 @@ const StudentDetailPage = () => {
         setIsDetailLoading(true);
         try {
             // 백엔드 단건 상세 조회 API 호출
-            const detailData: StudentInfo = await apiFetch(`/api/administrator/students/${studentSummary.id}`);
+            const detailData: StudentInfo = await apiFetch(`/api/attendances/student?id=${studentSummary.id}`);
             setSelectedStudent(detailData);
             setIsModalOpen(true);
         } catch (error) {
@@ -81,11 +96,15 @@ const StudentDetailPage = () => {
     // 5. 모달에서 '저장하기' 클릭 시 실행될 로직 (히스토리 포함)
     const handleSave = async (data: Partial<StudentInfo> & { editReason?: string }) => {
         try {
+            // 백엔드(EditStudentInfo)는 수정 사유를 comments 로 받음 → editReason 매핑
+            const { editReason, ...rest } = data;
+            const payload = { ...rest, comments: editReason };
+
             // 인적사항 및 상태 변경 API 호출 (PUT)
             await apiFetch(`/api/administrator/students`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data),
+                body: JSON.stringify(payload),
             });
 
             alert('학생 정보가 성공적으로 수정되었습니다.');
@@ -148,6 +167,7 @@ const StudentDetailPage = () => {
             <StudentInfoModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
+                mode="admin"
                 studentInfo={selectedStudent}
                 onSave={handleSave}
             />

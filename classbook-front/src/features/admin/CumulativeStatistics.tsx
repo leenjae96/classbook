@@ -129,10 +129,11 @@ const CumulativeStatistics = () => {
     const processedRegularStudents = useMemo(() =>
         buildRowSpans(sheetData?.students.filter(s => s.status === 1) ?? []), [sheetData]);
     const processedNewFriends = useMemo(() =>
-        // status=0(현재 새친구) + status=1이면서 registeredAt≠promotedAt (등반 이력 있는 학생)
+        // 올해 등록(registeredAt ≠ '01/01' placeholder) 이면서 status ∈ {0,1}
+        // (status 2 졸업·3 별분·4 휴직은 재적 제외 → '올해 등록 추적' 통계와 동일 기준)
         buildRowSpans(sheetData?.students.filter(s =>
-            s.status === 0 ||
-            (s.status === 1 && s.registeredAt !== null && s.registeredAt !== s.promotedAt)
+            (s.status === 0 || s.status === 1) &&
+            s.registeredAt !== null && s.registeredAt !== '01/01'
         ) ?? []), [sheetData]);
     const specialClassStudents = useMemo(() =>
         sheetData?.students.filter(s => s.status === 3) ?? [], [sheetData]);

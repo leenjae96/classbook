@@ -116,6 +116,7 @@ public class Student {
     }
 
     public void update(
+            String name,
             Boolean gender,
             String school,
             String phone,
@@ -128,6 +129,7 @@ public class Student {
             String remark,
             Classroom classroom
     ) {
+        this.name = name;
         this.gender = gender;
         this.school = school;
         this.phone = phone;

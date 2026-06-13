@@ -1,6 +1,9 @@
 package com.leenjae.service;
 
 import com.leenjae.domain.Classroom;
+import com.leenjae.domain.Student;
+import com.leenjae.domain.StudentAttendance;
+import com.leenjae.domain.StudentHistory;
 import com.leenjae.domain.Teacher;
 import com.leenjae.domain.TeacherRoles;
 import com.leenjae.domain.TeacherReport;
@@ -9,6 +12,7 @@ import com.leenjae.dto.AttendanceDto;
 import com.leenjae.dto.StudentDto;
 import com.leenjae.repository.ClassroomRepository;
 import com.leenjae.repository.StudentAttendanceRepository;
+import com.leenjae.repository.StudentHistoryRepository;
 import com.leenjae.repository.StudentRepository;
 import com.leenjae.repository.TeacherRepository;
 import com.leenjae.repository.TeacherReportRepository;
@@ -31,6 +35,7 @@ public class AdminService {
     private final TeacherReportRepository teacherReportRepository;
     private final StudentRepository studentRepository;
     private final StudentAttendanceRepository studentAttendanceRepository;
+    private final StudentHistoryRepository studentHistoryRepository;
     private final ClassroomRepository classroomRepository;
 
     public List<StudentDto.SummaryInfo> getStudentSummaryInfo() {
@@ -154,6 +159,100 @@ public class AdminService {
     }
 
     public AdminDto.HistoryResponse getHistories(LocalDate startDate, LocalDate endDate) {
-        return null;
+        List<AdminDto.HistoryResponse.Item> items = studentHistoryRepository
+                .findByStatusChangeDateBetween(startDate, endDate)
+                .stream()
+                .map(h -> new AdminDto.HistoryResponse.Item(
+                        h.getId(),
+                        h.getStudent().getName(),
+                        classroomLabelOrDash(h.getOldClassroom()),
+                        classroomLabelOrDash(h.getNewClassroom()),
+                        h.getComments(),
+                        h.getStatusChangeDate(),
+                        h.getCreatedAt()
+                ))
+                .toList();
+        return new AdminDto.HistoryResponse(items);
+    }
+
+    // 반 라벨: 1부남/1부여, N-M, 없으면 "-"
+    private String classroomLabelOrDash(Classroom classroom) {
+        if (classroom == null) return "-";
+        int grade = classroom.getGrade();
+        String classNo = classroom.getClassNo();
+        if (grade == 0) return "1부" + ("0".equals(classNo) ? "여" : "남");
+        return grade + "-" + classNo;
+    }
+
+    // 관리자 출석 수정: 날짜 잠금 없이 과거 데이터도 수정 + 변경 학생별 사유를 히스토리에 기록
+    //  - 출석 데이터: 없으면 생성, 있으면 갱신 (새친구 덮어쓰기 방지 로직 미적용 — 관리자 강제 수정)
+    //  - 히스토리   : status_change_date = 수정 대상 출석일, comments = 사유, 재적 상태는 변경 없음
+    @Transactional
+    public void editAttendances(AdminDto.AttendanceEditRequest req) {
+        LocalDate date = req.date();
+        if (req.items() == null) return;
+
+        for (AdminDto.AttendanceEditRequest.Item item : req.items()) {
+            Student student = studentRepository.findById(item.studentId())
+                    .orElseThrow(() -> new IllegalArgumentException("학생을 찾을 수 없습니다. id=" + item.studentId()));
+
+            Optional<StudentAttendance> existing =
+                    studentAttendanceRepository.findByStudentIdAndDate(item.studentId(), date);
+
+            // 변경 전 상태 캡처 (출석부 기록이 없으면 결석/코멘트 없음으로 간주)
+            boolean oldStatus = existing.map(StudentAttendance::getStatus).orElse(false);
+            String oldComments = existing.map(StudentAttendance::getComments).orElse(null);
+            boolean newStatus = Boolean.TRUE.equals(item.status());
+            String newComments = item.comments();
+
+            if (existing.isEmpty()) {
+                studentAttendanceRepository.save(
+                        StudentAttendance.builder()
+                                .student(student)
+                                .date(date)
+                                .status(newStatus)
+                                .comments(newComments)
+                                .build()
+                );
+            } else {
+                existing.get().update(newStatus, newComments);
+            }
+
+            studentHistoryRepository.save(
+                    StudentHistory.builder()
+                            .student(student)
+                            .oldClassroom(student.getClassroom())
+                            .newClassroom(student.getClassroom())
+                            .date(date)                       // 수정 대상 출석일
+                            .preStatus(student.getStatus())   // 재적 변경 아님 → pre == post
+                            .postStatus(student.getStatus())
+                            .comments(buildAttendanceEditComment(item.reason(), oldStatus, newStatus, oldComments, newComments))
+                            .build()
+            );
+        }
+    }
+
+    // 출석 수정 히스토리 코멘트 조립 (구분자 '/')
+    //  형식: {수정사유}/{출석 전->후}/{코멘트 전->후}
+    //  - 출석이 안 바뀌었으면 출석 구간 생략, 코멘트가 안 바뀌었으면 코멘트 구간 생략
+    private String buildAttendanceEditComment(
+            String reason, boolean oldStatus, boolean newStatus, String oldComments, String newComments) {
+        StringBuilder sb = new StringBuilder(reason == null ? "" : reason);
+
+        if (oldStatus != newStatus) {
+            sb.append("/").append(oldStatus ? "출석" : "결석")
+              .append("->").append(newStatus ? "출석" : "결석");
+        }
+
+        String oldC = oldComments == null ? "" : oldComments.trim();
+        String newC = newComments == null ? "" : newComments.trim();
+        if (!oldC.equals(newC)) {
+            sb.append("/")
+              .append(oldC.isEmpty() ? "(없음)" : oldC)
+              .append("->")
+              .append(newC.isEmpty() ? "(없음)" : newC);
+        }
+
+        return sb.toString();
     }
 }

@@ -16,6 +16,8 @@ import AdminCategorySelect from "./features/admin/AdminCategorySelect.tsx";
 import Home from "./features/Home.tsx";
 import CumulativeStatistics from "./features/admin/CumulativeStatistics.tsx";
 import StudentDetailPage from "./features/admin/StudentDetailPage.tsx";
+import AdminAttendanceEdit from "./features/admin/AdminAttendanceEdit.tsx";
+import EditHistoryPage from "./features/admin/EditHistoryPage.tsx";
 import TotalTeacherReports from "./features/admin/TotalTeacherReports.tsx";
 import TeacherWeeklyReport from "./features/admin/TeacherWeeklyReport.tsx";
 
@@ -43,6 +45,8 @@ function App() {
                     <Route path={paths.administrator.url} element={<AdminCategorySelect/>}/>
                     <Route path={paths.cumulativeStatistics.url} element={<CumulativeStatistics/>}/>
                     <Route path={paths.studentDetail.url} element={<StudentDetailPage/>}/>
+                    <Route path={paths.attendanceEdit.url} element={<AdminAttendanceEdit/>}/>
+                    <Route path={paths.editHistory.url} element={<EditHistoryPage/>}/>
                     <Route path={paths.totalTeacherReports.url} element={<TotalTeacherReports/>}/>
                     <Route path={paths.teacherWeeklyReport.url} element={<TeacherWeeklyReport/>}/>
 

@@ -58,7 +58,7 @@ tasks.register<Exec>("buildReact") {
     group = "frontend"
     description = "Build the React application"
 
-    onlyIf{isDevMode}
+    onlyIf { isDevMode }
     workingDir(file(frontendDir))
     // 윈도우인지 맥/리눅스인지 확인해서 명령어 결정
     if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -74,7 +74,7 @@ tasks.register<Copy>("copyReactBuildFiles") {
     description = "Copy React build files to Spring Boot static resources"
     // buildReact 작업이 먼저 끝나야 함
     dependsOn("buildReact")
-    onlyIf {isDevMode}
+    onlyIf { isDevMode }
     // 리액트 빌드 결과물 경로 (보통 build 또는 dist)
     from("$frontendDir/dist")
     // 복사할 목적지 (Spring Boot 정적 리소스 경로)
