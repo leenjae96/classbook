@@ -130,6 +130,7 @@ const ClassroomSheet = () => {
                                         studentCheck={studentCheck}
                                         onToggle={toggleStudentAttendance}
                                         onCommentChange={updateStudentAttendanceComment}
+                                        sheetDate={selectedDate}
                                     />
                                 ))}
                             </div>

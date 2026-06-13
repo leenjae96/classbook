@@ -101,10 +101,15 @@ public class AttendanceService {
                     .map(Student::getId)
                     .toList();
             Map<Long, Integer> pastCountMap = new HashMap<>();
+            Map<Long, LocalDate> pastLastDateMap = new HashMap<>();
             if (!newFriendIds.isEmpty()) {
                 studentAttendanceRepository
                         .countPastAttendanceByStudentIds(newFriendIds, date)
-                        .forEach(row -> pastCountMap.put((Long) row[0], ((Long) row[1]).intValue()));
+                        .forEach(row -> {
+                            Long sid = (Long) row[0];
+                            pastCountMap.put(sid, ((Long) row[1]).intValue());
+                            if (row[2] != null) pastLastDateMap.put(sid, (LocalDate) row[2]);
+                        });
             }
 
             studentAttendanceList = students.stream()
@@ -114,9 +119,9 @@ public class AttendanceService {
                     })
                     .map(student -> {
                         StudentAttendance sa = studentAttendanceMap.get(student.getId());
-                        Integer pastCount = student.getStatus() == Status.NEW.getCode()
-                                ? pastCountMap.getOrDefault(student.getId(), 0)
-                                : null;
+                        boolean isNew = student.getStatus() == Status.NEW.getCode();
+                        Integer pastCount = isNew ? pastCountMap.getOrDefault(student.getId(), 0) : null;
+                        LocalDate pastLastDate = isNew ? pastLastDateMap.get(student.getId()) : null;
                         if (sa == null) {
                             return AttendanceDto.StudentAttendance.builder()
                                     .id(student.getId())
@@ -125,6 +130,7 @@ public class AttendanceService {
                                     .status(false)
                                     .comments(null)
                                     .pastAttendanceCount(pastCount)
+                                    .pastAttendanceLastDate(pastLastDate)
                                     .build();
                         } else {
                             return AttendanceDto.StudentAttendance.builder()
@@ -134,6 +140,7 @@ public class AttendanceService {
                                     .status(sa.getStatus())
                                     .comments(sa.getComments())
                                     .pastAttendanceCount(pastCount)
+                                    .pastAttendanceLastDate(pastLastDate)
                                     .build();
                         }
                     })

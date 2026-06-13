@@ -203,6 +203,7 @@ const AdminAttendanceEdit = () => {
                                         studentCheck={s}
                                         onToggle={toggle}
                                         onCommentChange={changeComment}
+                                        sheetDate={selectedDate}
                                     />
                                 ))}
                             </div>
