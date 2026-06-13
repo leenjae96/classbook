@@ -87,20 +87,24 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
     List<StatisticsDto.StudentStats> getStudentStatsByDate(@Param("date") LocalDate date);
 
     // 2. 새친구 통계
+    //  - attendance/total : 현재 새친구(status=0) 출석/전체
+    //  - tracing*         : 올해 등록 추적 = 올해 등록(registeredAt ≠ 올해 1/1 placeholder) 이면서 status ∈ {0,1}
+    //                       (status 2 졸업·3 별분·4 휴직은 재적 제외이므로 카운트 안 함)
+    //                       → 누적통계 '새친구 시트'와 동일 기준 (getRawCumulativeStatsForNewFriends)
     @Query("""
                 SELECT new com.leenjae.dto.StatisticsDto$NewFriendStats(
                             COALESCE(SUM(CASE WHEN s.status = 0 AND sa.status = true THEN 1L ELSE 0L END), 0L),
                             COALESCE(SUM(CASE WHEN s.status = 0 THEN 1L ELSE 0L END), 0L),
-                            COALESCE(SUM(CASE WHEN s.registeredAt != :excludeDate AND sa.status = true THEN 1L ELSE 0L END), 0L),
-                            COALESCE(SUM(CASE WHEN s.registeredAt != :excludeDate THEN 1L ELSE 0L END), 0L)
+                            COALESCE(SUM(CASE WHEN (s.status = 0 OR s.status = 1) AND s.registeredAt <> :excludeDate AND sa.status = true THEN 1L ELSE 0L END), 0L),
+                            COALESCE(SUM(CASE WHEN (s.status = 0 OR s.status = 1) AND s.registeredAt <> :excludeDate THEN 1L ELSE 0L END), 0L)
                         )
                         FROM Student s
                         LEFT JOIN StudentAttendance sa ON sa.student = s AND sa.date = :date
-                        WHERE s.status = 0 OR s.registeredAt != :excludeDate
+                        WHERE s.status = 0 OR (s.status = 1 AND s.registeredAt <> :excludeDate)
             """)
     StatisticsDto.NewFriendStats getNewFriendStatsByDate(
             @Param("date") LocalDate date,
-            @Param("excludeDate") LocalDate excludeDate // ✨ 파라미터 추가!
+            @Param("excludeDate") LocalDate excludeDate // 올해 1/1 placeholder (등록일 미상)
     );
 
     @Query("""
@@ -143,7 +147,8 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
             @Param("endDate") LocalDate endDate
     );
 
-    // 새친구 누적 통계 전용: 현재 새친구(status=0) + 등반 이력 있는 학생(status=1, registeredAt≠promotedAt)
+    // 새친구 누적 통계 전용: 올해 등록(registeredAt ≠ 올해 1/1 = startDate) 이면서 status ∈ {0,1}
+    //  (status 2 졸업·3 별분·4 휴직은 재적 제외이므로 미포함 / '올해 등록 추적' 통계와 동일 기준)
     @Query("""
                 SELECT new com.leenjae.dto.AttendanceDto$RawCumulativeStats(
                     s.id, s.status, c.grade, c.classNo, s.name, sa.date, s.registeredAt, s.promotedAt
@@ -155,8 +160,7 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
                             sa.status = true AND
                             sa.date >= :startDate AND
                             sa.date <= :endDate
-                WHERE s.status = 0 OR
-                      (s.status = 1 AND s.registeredAt IS NOT NULL AND s.promotedAt IS NOT NULL AND s.registeredAt <> s.promotedAt)
+                WHERE (s.status = 0 OR s.status = 1) AND s.registeredAt <> :startDate
                 ORDER BY s.status ASC, c.grade ASC, s.name ASC
             """)
     List<AttendanceDto.RawCumulativeStats> getRawCumulativeStatsForNewFriends(

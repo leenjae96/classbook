@@ -74,6 +74,15 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getTeacherWeeklyReport(date));
     }
 
+    // 관리자 출석 수정 (날짜 잠금 없이, 변경 학생별 사유는 히스토리로 기록)
+    @PostMapping("/attendances")
+    public ResponseEntity<Void> editAttendances(
+            @RequestBody AdminDto.AttendanceEditRequest req
+    ) {
+        adminService.editAttendances(req);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/histories")
     public ResponseEntity<AdminDto.HistoryResponse> getHistories(
             @RequestParam LocalDate startDate,

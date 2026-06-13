@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import type {StudentInfo, ClassroomSummary} from '../../constants/types.tsx';
 import {apiFetch} from "../../hooks/api.ts";
 import styles from './StudentInfoModal.module.css';
@@ -8,12 +8,17 @@ interface Props {
     onClose: () => void;
     studentInfo: StudentInfo | null;
     onSave: (data: Partial<StudentInfo> & { editReason?: string }) => void;
+    // 'newFriend' : 새친구 페이지 (등반 처리 / status 0·1)
+    // 'admin'     : 관리자 인적사항 수정 (status 0·1·3)
+    mode?: 'newFriend' | 'admin';
 }
 
-export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave}: Props) => {
+export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, mode = 'newFriend'}: Props) => {
     const grades: number[] = [1, 2, 3, 0];
     const [grade, setGrade] = useState<number | undefined>(undefined);
     const [classrooms, setClassrooms] = useState<ClassroomSummary[]>([]);
+    // 별분(status=3) 선택 시 학년/반을 미지정으로 비웠다가, 다시 일반/새친구로 돌아오면 복원하기 위한 원본 보관
+    const originalClassroom = useRef<{ grade?: number; classroomId?: number }>({});
 
     const [formData, setFormData] = useState<Partial<StudentInfo> & { editReason?: string }>({
         classroomId: undefined,
@@ -35,6 +40,11 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave}: Props) 
         if (studentInfo) {
             setFormData({...studentInfo, editReason: ''});
             setGrade(studentInfo.grade === null ? undefined : studentInfo.grade);
+            // 원본 학년/반 보관 (별분 → 일반 복귀 시 복원용)
+            originalClassroom.current = {
+                grade: studentInfo.grade === null ? undefined : studentInfo.grade,
+                classroomId: studentInfo.classroomId ?? undefined,
+            };
         } else {
             setFormData({
                 name: '',
@@ -96,20 +106,44 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave}: Props) 
                 parsedValue = value === 'true';
             }
 
-            const updatedData = {...prev, [name]: parsedValue};
-
-            if (name === 'status' && parsedValue !== 1) {
-                updatedData.promotedAt = undefined;
-            }
-
-            return updatedData;
+            return {...prev, [name]: parsedValue};
         });
     };
+
+    // 학적 상태 변경 전용 핸들러
+    //  - 등반(새친구 페이지에서 status=1) → 수정 사유 자동 '등반' (수정 불가)
+    //  - 별분(status=3)                  → 학년/반 미지정으로 강제
+    const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const prevStatus = formData.status;
+        const newStatus = Number(e.target.value);
+        setFormData(prev => {
+            const updated: typeof prev = {...prev, status: newStatus};
+            if (newStatus !== 1) updated.promotedAt = undefined;
+            if (newStatus === 3) {            // 별분 → 미지정
+                updated.grade = undefined;
+                updated.classroomId = undefined;
+            } else if (prevStatus === 3) {    // 별분 → 일반/새친구 복귀: 원본 학년/반 복원
+                updated.grade = originalClassroom.current.grade;
+                updated.classroomId = originalClassroom.current.classroomId;
+            }
+            if (mode === 'newFriend') {       // 새친구 페이지: 등반이면 사유 자동 '등반'
+                updated.editReason = newStatus === 1 ? '등반' : '';
+            }
+            return updated;
+        });
+        if (newStatus === 3) setGrade(undefined);
+        else if (prevStatus === 3) setGrade(originalClassroom.current.grade);
+    };
+
+    // 새친구 페이지에서 등반(status=1) 처리 중인지 → 수정 사유 잠금
+    const isPromoting = mode === 'newFriend' && formData.status === 1;
 
     const handleSubmit = () => {
         if (!formData.name?.trim()) return alert('이름을 입력해주세요.');
         if (formData.gender === undefined) return alert('성별을 선택해주세요.');
         if (formData.status === undefined) return alert('학적 상태를 선택해주세요.');
+        // 등반 시에는 학년/반이 반드시 지정되어 있어야 함
+        if (isPromoting && !formData.classroomId) return alert('등반 시에는 학년/반을 반드시 지정해주세요.');
         if (studentInfo && !formData.editReason?.trim()) return alert('수정 사유를 입력해주세요.');
 
         onSave(formData);
@@ -137,7 +171,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave}: Props) 
                     </div>
                     <div>
                         <label className={styles.label}>학년 (선택)</label>
-                        <select value={grade ?? ''} onChange={(e) => {
+                        <select value={grade ?? ''} disabled={formData.status === 3} onChange={(e) => {
                             const gradeVal = e.target.value === '' ? undefined : Number(e.target.value);
                             setGrade(gradeVal);
                             setFormData(prev => ({...prev, grade: gradeVal, classroomId: undefined}));
@@ -152,7 +186,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave}: Props) 
                         <label className={styles.label}>반 (선택)</label>
                         <select name="classroomId" value={formData.classroomId || ''} onChange={(e) => {
                             setFormData(prev => ({...prev, classroomId: Number(e.target.value)}));
-                        }} disabled={grade === undefined} className={styles.inputField}>
+                        }} disabled={grade === undefined || formData.status === 3} className={styles.inputField}>
                             <option value="">{grade === undefined ? '학년을 먼저 선택하세요' : '미지정'}</option>
                             {classrooms.map(c => (
                                 <option key={c.id} value={c.id}>
@@ -163,9 +197,19 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave}: Props) 
                     </div>
                     <div>
                         <label className={styles.label}>학적 상태 <span className={styles.required}>*</span></label>
-                        <select name="status" value={formData.status ?? 0} onChange={handleChange} className={styles.inputField}>
-                            <option value={0}>새친구(출석중)</option>
-                            <option value={1}>등반</option>
+                        <select name="status" value={formData.status ?? 0} onChange={handleStatusChange} className={styles.inputField}>
+                            {mode === 'admin' ? (
+                                <>
+                                    <option value={0}>새친구</option>
+                                    <option value={1}>일반</option>
+                                    <option value={3}>별분</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value={0}>새친구(출석중)</option>
+                                    <option value={1}>등반</option>
+                                </>
+                            )}
                         </select>
                     </div>
 
@@ -224,7 +268,11 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave}: Props) 
                         <label className={styles.historyLabel}>
                             수정 사유 <span className={styles.required}>*</span> <span className={styles.historySubText}>(히스토리 기록용)</span>
                         </label>
-                        <input type="text" name="editReason" value={formData.editReason || ''} onChange={handleChange} placeholder="예: 연락처 변경, 등반 처리 등" className={styles.inputField} />
+                        <input type="text" name="editReason" value={formData.editReason || ''} onChange={handleChange}
+                               readOnly={isPromoting}
+                               placeholder={isPromoting ? '' : '예: 연락처 변경, 등반 처리 등'}
+                               className={styles.inputField}
+                               style={isPromoting ? {backgroundColor: 'var(--readonly-bg, #f1f3f5)', cursor: 'not-allowed'} : undefined} />
                     </div>
                 )}
 

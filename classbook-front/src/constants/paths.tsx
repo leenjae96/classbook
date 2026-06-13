@@ -68,6 +68,10 @@ export const paths = {
         url: `/${ADMINISTRATOR_BASE}/student-detail`,
         api: ``
     },
+    attendanceEdit: {
+        url: `/${ADMINISTRATOR_BASE}/attendance-edit`,
+        api: ``
+    },
     editHistory: {
         url: `/${ADMINISTRATOR_BASE}/edit-history`,
         api: ``

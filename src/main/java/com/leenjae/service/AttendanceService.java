@@ -391,34 +391,36 @@ public class AttendanceService {
 
         Integer oldStatus = existingStudent.getStatus();
         Integer newStatus = info.status();
-        // 새친구에서 등반한 경우
-        if (oldStatus == Status.NEW.getCode() && newStatus == Status.NORMAL.getCode()) {
-            studentHistoryRepository.save(
-                    StudentHistory.builder()
-                            .student(existingStudent)
-                            .classroom(existingStudent.getClassroom())
-                            .date(info.promotedAt())
-                            .preStatus(oldStatus)
-                            .postStatus(newStatus)
-                            .comments("등반")
-                            .build()
-            );
-        }
-        // 새친구 등반을 제외한 모든 경우(admin 요청)
-        else {
-            studentHistoryRepository.save(
-                    StudentHistory.builder()
-                            .student(existingStudent)
-                            .classroom(existingStudent.getClassroom())
-                            .date(info.promotedAt())
-                            .preStatus(oldStatus)
-                            .postStatus(newStatus)
-                            .comments(info.comments())
-                            .build()
-            );
-        }
+        boolean promoted = oldStatus == Status.NEW.getCode() && newStatus == Status.NORMAL.getCode();
+
+        // 별분(status=3)으로 바뀌면 반은 미지정(null)으로 강제 — 재적에서 빠지는 친구이므로
+        boolean removed = newStatus != null && newStatus == Status.REMOVED.getCode();
+        Classroom oldClassroom = existingStudent.getClassroom(); // 변경 전 반
+        Classroom newClassroom = removed ? null : classroom;      // 변경 후(최종) 반
+
+        // 히스토리 기록 (statusChangeDate · comments 는 NOT NULL 이므로 항상 채운다)
+        //  - comments       : 관리자가 입력한 수정 사유. 비었으면 등반은 "등반", 그 외는 "(사유 미입력)"
+        //  - statusChangeDate: 등반이면 등반일(없으면 오늘), 그 외 인적사항 변경은 오늘
+        //  - oldClassroom / newClassroom : 반 변경 여부와 무관하게 이전·최종 반을 모두 기록
+        String reason = (info.comments() != null && !info.comments().isBlank())
+                ? info.comments()
+                : (promoted ? "등반" : "(사유 미입력)");
+        LocalDate changeDate = (promoted && info.promotedAt() != null) ? info.promotedAt() : LocalDate.now();
+
+        studentHistoryRepository.save(
+                StudentHistory.builder()
+                        .student(existingStudent)
+                        .oldClassroom(oldClassroom)
+                        .newClassroom(newClassroom)
+                        .date(changeDate)
+                        .preStatus(oldStatus)
+                        .postStatus(newStatus)
+                        .comments(reason)
+                        .build()
+        );
 
         existingStudent.update(
+                info.name(),
                 info.gender(),
                 info.school(),
                 info.phone(),
@@ -429,7 +431,7 @@ public class AttendanceService {
                 info.registeredAt(),
                 info.promotedAt(),
                 info.remark(),
-                classroom
+                newClassroom
         );
     }
 

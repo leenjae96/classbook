@@ -51,21 +51,28 @@ public class StudentHistory {
     private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "last_classroom_id")
+    @JoinColumn(name = "old_classroom_id")
+    @Comment("이전 반 식별자")
+    private Classroom oldClassroom;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "new_classroom_id")
     @Comment("최종 반 식별자")
-    private Classroom classroom;
+    private Classroom newClassroom;
 
     @Builder
     public StudentHistory(
             Student student,
-            Classroom classroom,
+            Classroom oldClassroom,
+            Classroom newClassroom,
             LocalDate date,
             Integer preStatus,
             Integer postStatus,
             String comments
     ) {
         this.student = student;
-        this.classroom = classroom;
+        this.oldClassroom = oldClassroom;
+        this.newClassroom = newClassroom;
         this.statusChangeDate = date;
         this.preStatus = preStatus;
         this.postStatus = postStatus;

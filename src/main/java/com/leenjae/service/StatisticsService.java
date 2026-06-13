@@ -63,11 +63,12 @@ public class StatisticsService {
     }
 
     public StatisticsDto.Response getGradeStatistics(LocalDate date) {
-        LocalDate exclusiveDate = LocalDate.of(LocalDate.now().getYear(), 1, 1);
+        // 올해 1/1 = 등록일 미상 placeholder → '올해 등록 추적'에서 제외
+        LocalDate excludeDate = LocalDate.of(date.getYear(), 1, 1);
 
         return StatisticsDto.Response.builder()
                 .classStats(studentAttendanceRepository.getStudentStatsByDate(date))
-                .newFriendStats(studentAttendanceRepository.getNewFriendStatsByDate(date, exclusiveDate))
+                .newFriendStats(studentAttendanceRepository.getNewFriendStatsByDate(date, excludeDate))
                 .date(date)
                 .build();
     }
