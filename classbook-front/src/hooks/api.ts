@@ -1,8 +1,13 @@
 export const apiFetch = async (url: string, options?: RequestInit) => {
     const res = await fetch(url, options);
-    // 1. HTTP 에러 처리
+    // 1. HTTP 에러 처리 — 서버가 내려준 message가 있으면 그대로 사용
     if (!res.ok) {
-        throw new Error(`서버 응답 오류 (상태 코드: ${res.status})`);
+        let msg = `서버 응답 오류 (상태 코드: ${res.status})`;
+        try {
+            const body = await res.clone().json();
+            if (body && typeof body.message === 'string' && body.message) msg = body.message;
+        } catch { /* JSON 아니면 기본 메시지 유지 */ }
+        throw new Error(msg);
     }
     // 2. 응답 내용물(JSON 등) 유연하게 처리
     const contentType = res.headers.get("content-type");

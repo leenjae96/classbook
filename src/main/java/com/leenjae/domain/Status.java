@@ -8,8 +8,10 @@ public enum Status {
     NEW(0, "새친구"),
     NORMAL(1, "일반, 정상"),
     GRADUATED(2, "졸업"),
-    REMOVED(3, "별분"),
-    ABSENCE(4, "휴직");
+    SEPARATED(3, "별분"),
+    ABSENCE(4, "휴직"),
+    DELETED(5, "삭제")
+    ;
 
     @Getter
     private final int code;

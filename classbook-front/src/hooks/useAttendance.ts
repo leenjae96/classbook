@@ -1,6 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
 import type {Sheet, StudentAttendance, TeacherAttendance, TeacherReport} from "../constants/types.tsx";
-import {useNavigate} from "react-router-dom";
 import {apiFetch} from "./api.ts";
 
 // API 호출 함수가 prop으로 들어오거나, URL이 들어오도록 설계
@@ -10,13 +9,13 @@ interface UseAttendanceProps {
 }
 
 export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) => {
-    const navigate = useNavigate();
-
     const [selectedDate, setSelectedDate] = useState<string>(initialDate || new Date().toLocaleDateString('en-CA'));
     const [loading, setLoading] = useState(false);
     const [studentAttendances, setStudentAttendances] = useState<StudentAttendance[]>([]);
     const [teacherReport, setTeacherReport] = useState<TeacherReport>();
     const [teacherAttendances, setTeacherAttendances] = useState<TeacherAttendance[]>([]);
+    // 서버 시각 - 클라이언트 시각 보정값(ms). 저장 마감(13:30) 판단을 서버 기준으로 하기 위함.
+    const [serverOffsetMs, setServerOffsetMs] = useState<number | null>(null);
     // 1. 데이터 가져오기
     useEffect(() => {
         if (!apiEndpoint) return;
@@ -30,6 +29,9 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
                 setStudentAttendances(data.studentAttendances || []);
                 setTeacherReport(data.teacherReport || undefined);
                 setTeacherAttendances(data.teacherAttendances || []);
+                if (data.serverEpochMillis != null) {
+                    setServerOffsetMs(data.serverEpochMillis - Date.now());
+                }
             })
             .catch(err => {
                 console.error("Fetch error:", err);
@@ -102,6 +104,12 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
             alert('선생님 예배 여부를 선택해주세요.');
             return;
         }
+        // 서버 시각 기준 당일 13:30 마감 (선제 차단; 백엔드도 동일하게 검증)
+        const cutoffMs = new Date(`${selectedDate}T13:30:00+09:00`).getTime();
+        if (Date.now() + (serverOffsetMs ?? 0) >= cutoffMs) {
+            alert('오후 1시 30분이 지나 저장할 수 없습니다.');
+            return;
+        }
 
         try {
             await apiFetch(`/api/attendances/sheet?date=${selectedDate}`, {
@@ -113,15 +121,16 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
                     teacherAttendances: teacherAttendances
                 }),
             });
-            alert('제출되었습니다!');
-            navigate(-1);
+            alert('저장되었습니다!');
+            // 현재 페이지를 새로고침해 저장된 최신 데이터로 다시 로드
+            window.location.reload();
             return true;
         } catch (e) {
             console.error(e);
-            alert('제출 실패');
+            alert(e instanceof Error && e.message ? e.message : '저장 실패');
             return false;
         }
-    }, [apiEndpoint, selectedDate, studentAttendances, teacherReport, teacherAttendances]);
+    }, [apiEndpoint, selectedDate, studentAttendances, teacherReport, teacherAttendances, serverOffsetMs]);
 
     return {
         selectedDate,
@@ -138,6 +147,7 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
         teacherAttendances,
         toggleTeacherAttendance,
         updateTeacherAttendanceComment,
-        loading
+        loading,
+        serverOffsetMs
     };
 };

@@ -22,7 +22,8 @@ public class AttendanceDto {
     public record Sheet(
             List<StudentAttendance> studentAttendances,
             TeacherReport teacherReport,
-            List<TeacherAttendance> teacherAttendances
+            List<TeacherAttendance> teacherAttendances,
+            Long serverEpochMillis // 응답 시점의 서버 시각(epoch ms) — 프론트 저장 마감 판단용
     ) {}
 
     @Builder

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {useParams} from "react-router-dom";
 import {useAttendance} from "../../hooks/useAttendance.ts";
 import {TeacherReportRow} from "../../components/attendance/TeacherReportRow.tsx";
@@ -22,24 +21,21 @@ const AdministrativeSheet = () => {
         teacherAttendances,
         toggleTeacherAttendance,
         updateTeacherAttendanceComment,
-        loading
+        loading,
+        serverOffsetMs
     } = useAttendance({
         apiEndpoint: `/api/attendances/sheet?teacherId=${teacherId}`,
         initialDate: getMostRecentSunday()
     });
 
-    const [loadedWorship, setLoadedWorship] = useState<{ date: string; worship: number } | null>(null);
-    useEffect(() => {
-        if (teacherReport !== undefined && loadedWorship?.date !== selectedDate) {
-            setLoadedWorship({ date: selectedDate, worship: teacherReport.worship });
-        }
-    }, [teacherReport, selectedDate]);
-
     const todayStr = new Date().toLocaleDateString('en-CA');
+    // 서버 시각 기준 당일 13:30 까지만 저장/수정 허용
+    const cutoffMs = new Date(`${selectedDate}T13:30:00+09:00`).getTime();
+    const afterCutoff = Date.now() + (serverOffsetMs ?? 0) >= cutoffMs;
     const isLocked =
         new Date().getDay() !== 0 ||
         selectedDate !== todayStr ||
-        (loadedWorship?.date === selectedDate && loadedWorship.worship !== -1);
+        afterCutoff;
 
     const lockedBox = (
         <div style={{
@@ -53,10 +49,12 @@ const AdministrativeSheet = () => {
             lineHeight: '1.8',
         }}>
             <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
-                제출은 당일에만 가능합니다.
+                {afterCutoff && selectedDate === todayStr
+                    ? '오후 1시 30분이 지나 저장할 수 없습니다.'
+                    : '저장은 당일 오후 1시 30분까지만 가능합니다.'}
             </div>
             <div style={{ fontSize: '13px' }}>
-                제출 이후 보고서 열람을 원하는 경우 관리자에게 문의하세요.
+                수정이 필요한 경우 관리자에게 문의하세요.
             </div>
         </div>
     );
@@ -111,7 +109,7 @@ const AdministrativeSheet = () => {
                         className="submit-btn"
                         onClick={submitAttendance}
                     >
-                        제출하기
+                        저장하기
                     </button>
                 </>
             )}

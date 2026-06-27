@@ -72,7 +72,9 @@ export const NewFriendCumulativeModal = ({ isOpen, onClose }: Props) => {
                     )}
                     {/* 새친구이고 3회 이상 출석 → 등반 필요 */}
                     {!showPromotedLabel && student.attendances.length >= 3 && (
-                        <span style={{ fontSize: '10px', color: '#e65100', background: '#fff3e0', padding: '1px 5px', borderRadius: '8px', marginLeft: '4px' }}>🎉등반!</span>
+                        <span style={{ fontSize: '10px', color: '#e65100', background: '#fff3e0', padding: '1px 5px', borderRadius: '8px', marginLeft: '4px' }}>
+                            ({student.attendances.length}회){[...student.attendances].sort().at(-1)}
+                        </span>
                     )}
                 </td>
                 {sheetData!.headerDates.map(date => {

@@ -17,13 +17,19 @@ const NewFriend = () => {
         toggleStudentAttendance,
         updateStudentAttendanceComment,
         submitAttendance,
-        loading
+        loading,
+        serverOffsetMs
     } = useAttendance({
         apiEndpoint: '/api/attendances/new-friend/sheet',
         initialDate: getMostRecentSunday()
     });
 
-    const isLocked = new Date().getDay() !== 0 || selectedDate !== new Date().toLocaleDateString('en-CA');
+    // 서버 시각 기준 당일 13:30 까지만 저장/수정 허용
+    const cutoffMs = new Date(`${selectedDate}T13:30:00+09:00`).getTime();
+    const afterCutoff = Date.now() + (serverOffsetMs ?? 0) >= cutoffMs;
+    const isLocked = new Date().getDay() !== 0
+        || selectedDate !== new Date().toLocaleDateString('en-CA')
+        || afterCutoff;
 
     // 학생 정보 모달 상태
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -103,10 +109,12 @@ const NewFriend = () => {
                     lineHeight: '1.8',
                 }}>
                     <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
-                        제출은 당일에만 가능합니다.
+                        {afterCutoff && selectedDate === new Date().toLocaleDateString('en-CA')
+                            ? '오후 1시 30분이 지나 저장할 수 없습니다.'
+                            : '저장은 당일 오후 1시 30분까지만 가능합니다.'}
                     </div>
                     <div style={{ fontSize: '13px' }}>
-                        제출 이후 보고서 열람을 원하는 경우 관리자에게 문의하세요.
+                        수정이 필요한 경우 관리자에게 문의하세요.
                     </div>
                 </div>
             ) : (
@@ -135,7 +143,7 @@ const NewFriend = () => {
                     </div>
                     <hr style={{margin: '20px 0'}}/>
                     <button className="submit-btn" onClick={submitAttendance}>
-                        제출하기
+                        저장하기
                     </button>
                 </>
             )}

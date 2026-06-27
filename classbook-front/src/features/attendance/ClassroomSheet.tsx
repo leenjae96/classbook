@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { TeacherReportRow } from "../../components/attendance/TeacherReportRow.tsx";
 import { useAttendance } from "../../hooks/useAttendance.ts";
@@ -20,25 +20,20 @@ const ClassroomSheet = () => {
         toggleStudentAttendance, updateStudentAttendanceComment,
         teacherReport, handleWorshipChange, handleOtnChange,
         handleDawnPrayChange, handleTeacherReportCommentChange, submitAttendance,
-        loading
+        loading, serverOffsetMs
     } = useAttendance({
         apiEndpoint: `/api/attendances/sheet?grade=${grade}&classNo=${classNo}`,
         initialDate: getMostRecentSunday()
     });
 
-    // 날짜별 최초 로드 시점의 worship 값을 캡처 (사용자가 선택을 바꿔도 잠금 조건에 영향 없도록)
-    const [loadedWorship, setLoadedWorship] = useState<{ date: string; worship: number } | null>(null);
-    useEffect(() => {
-        if (teacherReport !== undefined && loadedWorship?.date !== selectedDate) {
-            setLoadedWorship({ date: selectedDate, worship: teacherReport.worship });
-        }
-    }, [teacherReport, selectedDate]);
-
     const todayStr = new Date().toLocaleDateString('en-CA');
+    // 서버 시각 기준 당일 13:30 까지 무제한 저장/수정 허용, 이후 잠금
+    const cutoffMs = new Date(`${selectedDate}T13:30:00+09:00`).getTime();
+    const afterCutoff = Date.now() + (serverOffsetMs ?? 0) >= cutoffMs;
     const isLocked =
         new Date().getDay() !== 0 ||
         selectedDate !== todayStr ||
-        (loadedWorship?.date === selectedDate && loadedWorship.worship !== -1);
+        afterCutoff;
 
     const normalStudents = studentAttendances.filter(student => student.studentStatus !== 0);
     const newStudents = studentAttendances.filter(student => student.studentStatus === 0);
@@ -94,10 +89,12 @@ const ClassroomSheet = () => {
                     lineHeight: '1.8',
                 }}>
                     <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
-                        제출은 당일에만 가능합니다.
+                        {afterCutoff && selectedDate === todayStr
+                            ? '오후 1시 30분이 지나 저장할 수 없습니다.'
+                            : '저장은 당일 오후 1시 30분까지만 가능합니다.'}
                     </div>
                     <div style={{ fontSize: '13px' }}>
-                        제출 이후 보고서 열람을 원하는 경우 관리자에게 문의하세요.
+                        수정이 필요한 경우 관리자에게 문의하세요.
                     </div>
                 </div>
             ) : (
@@ -150,7 +147,7 @@ const ClassroomSheet = () => {
                     )}
 
                     <button className="submit-btn" onClick={submitAttendance}>
-                        제출하기
+                        저장하기
                     </button>
                 </>
             )}
