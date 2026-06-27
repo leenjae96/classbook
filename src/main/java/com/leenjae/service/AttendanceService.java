@@ -15,6 +15,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,6 +27,10 @@ import java.util.stream.Collectors;
 //LEE: readOnly에만 true라는건 이 내부 메소드 에 대해 지정하지 않은거 default?
 @Transactional(readOnly = true)
 public class AttendanceService {
+
+    // 출석 저장 마감 정책: 주일 당일 한국시각 13:30 까지 무제한 저장/수정 허용
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final LocalTime SAVE_CUTOFF = LocalTime.of(13, 30);
 
     private final ClassroomRepository classroomRepository;
     private final StudentRepository studentRepository;
@@ -218,28 +224,25 @@ public class AttendanceService {
                 .studentAttendances(studentAttendanceList)
                 .teacherReport(teacherReport)
                 .teacherAttendances(teacherAttendanceList)
+                .serverEpochMillis(System.currentTimeMillis())
                 .build();
     }
 
     private void validateDateForSave(LocalDate date, AttendanceDto.Sheet sheet) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(KST);
         DayOfWeek dayOfWeek = date.getDayOfWeek();
 
         if (dayOfWeek == DayOfWeek.SATURDAY) {
             if (!date.equals(today)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "제출은 당일에만 가능합니다.");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "저장은 당일에만 가능합니다.");
             }
         } else if (dayOfWeek == DayOfWeek.SUNDAY) {
             if (!date.equals(today)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "제출은 당일에만 가능합니다.");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "저장은 당일에만 가능합니다.");
             }
-            if (sheet.teacherReport() != null) {
-                long teacherId = sheet.teacherReport().id();
-                com.leenjae.domain.TeacherReport existingReport =
-                        teacherReportRepository.findByTeacherIdAndDate(teacherId, date);
-                if (existingReport != null) {
-                    throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이미 제출된 출석부입니다.");
-                }
+            // 당일 13:30 까지는 몇 번이든 저장/수정 허용. 이후에는 잠금.
+            if (!LocalTime.now(KST).isBefore(SAVE_CUTOFF)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "오후 1시 30분 이후에는 저장할 수 없습니다.");
             }
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주일 또는 토요일만 출석 제출이 가능합니다.");
@@ -401,7 +404,7 @@ public class AttendanceService {
         boolean promoted = oldStatus == Status.NEW.getCode() && newStatus == Status.NORMAL.getCode();
 
         // 별분(status=3)으로 바뀌면 반은 미지정(null)으로 강제 — 재적에서 빠지는 친구이므로
-        boolean removed = newStatus != null && newStatus == Status.REMOVED.getCode();
+        boolean removed = newStatus != null && newStatus == Status.SEPARATED.getCode();
         Classroom oldClassroom = existingStudent.getClassroom(); // 변경 전 반
         Classroom newClassroom = removed ? null : classroom;      // 변경 후(최종) 반
 

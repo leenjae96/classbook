@@ -37,6 +37,7 @@ export interface Sheet {
     studentAttendances: StudentAttendance[];
     teacherReport: TeacherReport;
     teacherAttendances: TeacherAttendance[];
+    serverEpochMillis?: number; // 응답 시점 서버 시각(epoch ms) — 저장 마감 판단용
 }
 export interface StudentAttendance {
     id: number;
