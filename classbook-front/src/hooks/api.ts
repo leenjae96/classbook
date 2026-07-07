@@ -1,7 +1,19 @@
+import {clearAdminToken, getAdminToken} from './adminAuth.ts';
+
 export const apiFetch = async (url: string, options?: RequestInit) => {
-    const res = await fetch(url, options);
+    // 관리자 API에는 PIN 게이트 토큰을 자동 첨부
+    const isAdminApi = url.startsWith('/api/administrator');
+    const headers = new Headers(options?.headers);
+    if (isAdminApi) {
+        const token = getAdminToken();
+        if (token) headers.set('X-Admin-Token', token);
+    }
+
+    const res = await fetch(url, {...options, headers});
     // 1. HTTP 에러 처리 — 서버가 내려준 message가 있으면 그대로 사용
     if (!res.ok) {
+        // 관리자 토큰이 만료/무효면 정리해서 다음 진입 시 PIN 게이트가 뜨게 함
+        if (isAdminApi && res.status === 401) clearAdminToken();
         let msg = `서버 응답 오류 (상태 코드: ${res.status})`;
         try {
             const body = await res.clone().json();

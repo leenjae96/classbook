@@ -45,9 +45,22 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         )
         FROM Student s
         LEFT JOIN s.classroom c
+        WHERE s.status <> 5
         ORDER BY c.grade ASC, CAST(c.classNo AS int) ASC, s.name ASC
     """)
     List<StudentDto.SummaryInfo> findAllStudentSummaryInfo();
+
+    // 소프트 삭제(status=5)된 학생만
+    @Query("""
+        SELECT new com.leenjae.dto.StudentDto$SummaryInfo(
+            s.id, s.name, c.grade, c.classNo, c.id, s.status
+        )
+        FROM Student s
+        LEFT JOIN s.classroom c
+        WHERE s.status = 5
+        ORDER BY s.name ASC
+    """)
+    List<StudentDto.SummaryInfo> findDeletedStudentSummaryInfo();
 
 
     List<Student> findByStatus(Integer status);

@@ -14,7 +14,7 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
     const [studentAttendances, setStudentAttendances] = useState<StudentAttendance[]>([]);
     const [teacherReport, setTeacherReport] = useState<TeacherReport>();
     const [teacherAttendances, setTeacherAttendances] = useState<TeacherAttendance[]>([]);
-    // 서버 시각 - 클라이언트 시각 보정값(ms). 저장 마감(13:30) 판단을 서버 기준으로 하기 위함.
+    // 서버 시각 - 클라이언트 시각 보정값(ms). 저장 마감(14:00) 판단을 서버 기준으로 하기 위함.
     const [serverOffsetMs, setServerOffsetMs] = useState<number | null>(null);
     // 1. 데이터 가져오기
     useEffect(() => {
@@ -104,10 +104,10 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
             alert('선생님 예배 여부를 선택해주세요.');
             return;
         }
-        // 서버 시각 기준 당일 13:30 마감 (선제 차단; 백엔드도 동일하게 검증)
-        const cutoffMs = new Date(`${selectedDate}T13:30:00+09:00`).getTime();
+        // 서버 시각 기준 당일 14:00 마감 (선제 차단; 백엔드도 동일하게 검증)
+        const cutoffMs = new Date(`${selectedDate}T14:00:00+09:00`).getTime();
         if (Date.now() + (serverOffsetMs ?? 0) >= cutoffMs) {
-            alert('오후 1시 30분이 지나 저장할 수 없습니다.');
+            alert('오후 2시가 지나 저장할 수 없습니다.');
             return;
         }
 

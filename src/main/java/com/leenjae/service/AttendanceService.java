@@ -28,9 +28,9 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class AttendanceService {
 
-    // 출석 저장 마감 정책: 주일 당일 한국시각 13:30 까지 무제한 저장/수정 허용
+    // 출석 저장 마감 정책: 주일 당일 한국시각 14:00 까지 무제한 저장/수정 허용
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-    private static final LocalTime SAVE_CUTOFF = LocalTime.of(13, 30);
+    private static final LocalTime SAVE_CUTOFF = LocalTime.of(14, 0);
 
     private final ClassroomRepository classroomRepository;
     private final StudentRepository studentRepository;
@@ -240,9 +240,9 @@ public class AttendanceService {
             if (!date.equals(today)) {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "저장은 당일에만 가능합니다.");
             }
-            // 당일 13:30 까지는 몇 번이든 저장/수정 허용. 이후에는 잠금.
+            // 당일 14:00 까지는 몇 번이든 저장/수정 허용. 이후에는 잠금.
             if (!LocalTime.now(KST).isBefore(SAVE_CUTOFF)) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "오후 1시 30분 이후에는 저장할 수 없습니다.");
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "오후 2시 이후에는 저장할 수 없습니다.");
             }
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "주일 또는 토요일만 출석 제출이 가능합니다.");

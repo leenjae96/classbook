@@ -42,6 +42,11 @@ public class AdminService {
         return studentRepository.findAllStudentSummaryInfo();
     }
 
+    // 소프트 삭제(status=5)된 학생 목록
+    public List<StudentDto.SummaryInfo> getDeletedStudentSummaryInfo() {
+        return studentRepository.findDeletedStudentSummaryInfo();
+    }
+
     public List<AdminDto.TotalReportResponse> getTotalReports(LocalDate date) {
         List<AdminDto.TotalReportResponse> result = new ArrayList<>();
         Set<Long> classroomTeacherIds = new HashSet<>(); // 이미 조회된 선생님 ID 기록용

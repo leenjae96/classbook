@@ -24,8 +24,8 @@ const NewFriend = () => {
         initialDate: getMostRecentSunday()
     });
 
-    // 서버 시각 기준 당일 13:30 까지만 저장/수정 허용
-    const cutoffMs = new Date(`${selectedDate}T13:30:00+09:00`).getTime();
+    // 서버 시각 기준 당일 14:00 까지만 저장/수정 허용
+    const cutoffMs = new Date(`${selectedDate}T14:00:00+09:00`).getTime();
     const afterCutoff = Date.now() + (serverOffsetMs ?? 0) >= cutoffMs;
     const isLocked = new Date().getDay() !== 0
         || selectedDate !== new Date().toLocaleDateString('en-CA')
@@ -110,8 +110,8 @@ const NewFriend = () => {
                 }}>
                     <div style={{ fontSize: '15px', fontWeight: '600', marginBottom: '6px' }}>
                         {afterCutoff && selectedDate === new Date().toLocaleDateString('en-CA')
-                            ? '오후 1시 30분이 지나 저장할 수 없습니다.'
-                            : '저장은 당일 오후 1시 30분까지만 가능합니다.'}
+                            ? '오후 2시가 지나 저장할 수 없습니다.'
+                            : '저장은 당일 오후 2시까지만 가능합니다.'}
                     </div>
                     <div style={{ fontSize: '13px' }}>
                         수정이 필요한 경우 관리자에게 문의하세요.
