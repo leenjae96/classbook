@@ -3,6 +3,7 @@ package com.leenjae.controller;
 import com.leenjae.dto.AdminDto;
 import com.leenjae.dto.AttendanceDto;
 import com.leenjae.dto.StudentDto;
+import com.leenjae.service.AdminAuthService;
 import com.leenjae.service.AdminService;
 import com.leenjae.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,16 @@ import java.util.List;
 public class AdminController {
     private final AdminService adminService;
     private final AttendanceService attendanceService;
+    private final AdminAuthService adminAuthService;
+
+    // PIN 게이트 로그인 — 인터셉터 제외 경로 (WebConfig 참고)
+    @PostMapping("/login")
+    public ResponseEntity<AdminDto.LoginResponse> login(
+            @RequestBody AdminDto.LoginRequest req
+    ) {
+        AdminAuthService.LoginResult result = adminAuthService.login(req.pin());
+        return ResponseEntity.ok(new AdminDto.LoginResponse(result.token(), result.expiresAt()));
+    }
 
     @GetMapping(value = "/cumulative-stats")
     public ResponseEntity<AttendanceDto.CumulativeSheet> getCumulativeStats(
@@ -34,6 +45,12 @@ public class AdminController {
     @GetMapping(value = "/students")
     public ResponseEntity<List<StudentDto.SummaryInfo>> getStudentSummaryInfo() {
         return ResponseEntity.ok(adminService.getStudentSummaryInfo());
+    }
+
+    // 소프트 삭제(status=5)된 학생 목록
+    @GetMapping(value = "/students/deleted")
+    public ResponseEntity<List<StudentDto.SummaryInfo>> getDeletedStudents() {
+        return ResponseEntity.ok(adminService.getDeletedStudentSummaryInfo());
     }
 
     @GetMapping("/total-reports")

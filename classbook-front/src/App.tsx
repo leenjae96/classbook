@@ -20,6 +20,7 @@ import AdminAttendanceEdit from "./features/admin/AdminAttendanceEdit.tsx";
 import EditHistoryPage from "./features/admin/EditHistoryPage.tsx";
 import TotalTeacherReports from "./features/admin/TotalTeacherReports.tsx";
 import TeacherWeeklyReport from "./features/admin/TeacherWeeklyReport.tsx";
+import AdminGate from "./components/common/AdminGate.tsx";
 
 
 function App() {
@@ -42,13 +43,16 @@ function App() {
 
                     <Route path={paths.statistics.url} element={<StatisticsPage/>}/>
 
-                    <Route path={paths.administrator.url} element={<AdminCategorySelect/>}/>
-                    <Route path={paths.cumulativeStatistics.url} element={<CumulativeStatistics/>}/>
-                    <Route path={paths.studentDetail.url} element={<StudentDetailPage/>}/>
-                    <Route path={paths.attendanceEdit.url} element={<AdminAttendanceEdit/>}/>
-                    <Route path={paths.editHistory.url} element={<EditHistoryPage/>}/>
-                    <Route path={paths.totalTeacherReports.url} element={<TotalTeacherReports/>}/>
-                    <Route path={paths.teacherWeeklyReport.url} element={<TeacherWeeklyReport/>}/>
+                    {/* 관리자 영역 — PIN 게이트로 보호 */}
+                    <Route element={<AdminGate/>}>
+                        <Route path={paths.administrator.url} element={<AdminCategorySelect/>}/>
+                        <Route path={paths.cumulativeStatistics.url} element={<CumulativeStatistics/>}/>
+                        <Route path={paths.studentDetail.url} element={<StudentDetailPage/>}/>
+                        <Route path={paths.attendanceEdit.url} element={<AdminAttendanceEdit/>}/>
+                        <Route path={paths.editHistory.url} element={<EditHistoryPage/>}/>
+                        <Route path={paths.totalTeacherReports.url} element={<TotalTeacherReports/>}/>
+                        <Route path={paths.teacherWeeklyReport.url} element={<TeacherWeeklyReport/>}/>
+                    </Route>
 
                 </Route>
             </Routes>

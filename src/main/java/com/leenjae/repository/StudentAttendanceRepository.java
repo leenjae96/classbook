@@ -118,6 +118,7 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
                             sa.status = true AND
                             sa.date >= :startDate AND
                             sa.date <= :endDate
+                WHERE s.status <> 5
                 ORDER BY s.status ASC, c.grade ASC, CAST(c.classNo AS int) ASC, s.name ASC
             """)
     List<AttendanceDto.RawCumulativeStats> getRawCumulativeStats(
@@ -137,7 +138,7 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
                             sa.status = true AND
                             sa.date >= :startDate AND
                             sa.date <= :endDate
-                WHERE c.grade = :grade AND c.classNo = :classNo AND s.status != 3
+                WHERE c.grade = :grade AND c.classNo = :classNo AND s.status != 3 AND s.status != 5
                 ORDER BY s.status ASC, c.grade ASC, CAST(c.classNo AS int) ASC, s.name ASC
             """)
     List<AttendanceDto.RawCumulativeStats> getRawCumulativeStatsByClassroom(

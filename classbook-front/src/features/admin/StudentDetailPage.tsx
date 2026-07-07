@@ -14,9 +14,13 @@ interface StudentSummary {
     status: number;
 }
 
+type View = 'active' | 'deleted';
+
 const StudentDetailPage = () => {
     // 1. 상태 관리
     const [students, setStudents] = useState<StudentSummary[]>([]);
+    const [deletedStudents, setDeletedStudents] = useState<StudentSummary[]>([]);
+    const [view, setView] = useState<View>('active'); // 재적 / 삭제 탭
     const [loading, setLoading] = useState<boolean>(false);
     const [isDetailLoading, setIsDetailLoading] = useState<boolean>(false); // 상세 정보 로딩 상태
 
@@ -37,9 +41,23 @@ const StudentDetailPage = () => {
         }
     };
 
+    // 삭제(status=5) 학생 목록
+    const fetchDeletedStudents = async () => {
+        setLoading(true);
+        try {
+            const data: StudentSummary[] = await apiFetch('/api/administrator/students/deleted');
+            setDeletedStudents(data);
+        } catch (error) {
+            console.error("삭제된 학생 목록을 불러오는데 실패했습니다.", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        fetchAllStudentsSummary();
-    }, []);
+        if (view === 'active') fetchAllStudentsSummary();
+        else fetchDeletedStudents();
+    }, [view]);
 
     // 3. 데이터를 '학년 반' 문자열을 Key로 하여 그룹핑 (화면 렌더링용)
     const groupedStudents = useMemo(() => {
@@ -77,6 +95,11 @@ const StudentDetailPage = () => {
         return groups;
     }, [students]);
 
+    // 현재 탭에 따라 렌더링할 그룹 목록 (재적: 학년/반 그룹, 삭제: 단일 그룹)
+    const displayEntries: [string, StudentSummary[]][] = view === 'active'
+        ? Object.entries(groupedStudents)
+        : (deletedStudents.length > 0 ? [[`삭제됨 (${deletedStudents.length}명)`, deletedStudents]] : []);
+
     // ✨ 4. 학생 버튼 클릭 시 상세 정보 단건 조회 후 모달 띄우기
     const handleStudentClick = async (studentSummary: StudentSummary) => {
         setIsDetailLoading(true);
@@ -109,7 +132,9 @@ const StudentDetailPage = () => {
 
             alert('학생 정보가 성공적으로 수정되었습니다.');
             setIsModalOpen(false);
-            fetchAllStudentsSummary(); // 저장 성공 시 목록 새로고침
+            // 현재 탭 새로고침 (삭제/복원 시 해당 탭에서 즉시 반영)
+            if (view === 'active') fetchAllStudentsSummary();
+            else fetchDeletedStudents();
         } catch (error) {
             console.error("저장 실패:", error);
             alert("저장에 실패했습니다.");
@@ -128,6 +153,25 @@ const StudentDetailPage = () => {
             <BackButton />
             <h4>인적사항 수정</h4>
 
+            {/* 재적 / 삭제 탭 토글 (출석 누적 통계 시트 선택 버튼과 동일 크기) */}
+            <div style={{display: 'flex', gap: '4px', marginBottom: '14px'}}>
+                {([['active', '재적 학생'], ['deleted', '삭제된 학생']] as const).map(([key, label]) => (
+                    <button
+                        key={key}
+                        onClick={() => setView(key)}
+                        style={{
+                            padding: '6px 16px', borderRadius: '5px', fontSize: '13px', fontWeight: 500,
+                            border: view === key ? '1px solid #4361ee' : '1px solid #dee2e6',
+                            background: view === key ? '#4361ee' : '#f8f9fa',
+                            color: view === key ? '#fff' : '#495057',
+                            cursor: 'pointer', transition: 'all 0.15s ease',
+                        }}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
+
             {/* 화면 덮는 로딩 바 (상세 정보 불러올 때 방어용) */}
             {isDetailLoading && (
                 <div style={{
@@ -141,10 +185,19 @@ const StudentDetailPage = () => {
 
             {loading ? (
                 <div style={{ textAlign: 'center', padding: '50px' }}>학생 데이터를 불러오는 중...</div>
+            ) : displayEntries.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '50px', color: '#adb5bd' }}>
+                    {view === 'deleted' ? '삭제된 학생이 없습니다.' : '학생이 없습니다.'}
+                </div>
             ) : (
                 <div className={styles.container}>
+                    {view === 'deleted' && (
+                        <p style={{ fontSize: '13px', color: '#868e96', marginTop: 0 }}>
+                            학생을 눌러 학적 상태를 바꾸면 복원됩니다. (예: '삭제됨' → '일반')
+                        </p>
+                    )}
                     {/* Object의 Key(그룹명)를 순회하며 렌더링 */}
-                    {Object.entries(groupedStudents).map(([groupName, groupStudents]) => (
+                    {displayEntries.map(([groupName, groupStudents]) => (
                         <div key={groupName} className={styles.classGroup}>
                             <h5 className={styles.classTitle}>{groupName}</h5>
                             <div className={styles.studentGrid}>

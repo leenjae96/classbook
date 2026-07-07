@@ -294,6 +294,7 @@ const CumulativeStatistics = () => {
     return (
         <div className="content">
             <BackButton />
+            <h4>출석 누적 통계</h4>
             <div className={styles.container}>
                 <div className={styles.headerControls}>
                     <div className={styles.tabGroup}>

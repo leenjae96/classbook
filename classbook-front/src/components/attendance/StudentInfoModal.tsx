@@ -149,6 +149,13 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, mode = '
         onSave(formData);
     };
 
+    // 소프트 삭제: status=5로 저장 (row는 남기고 목록에서만 숨김 → 삭제된 학생 페이지에서 복원 가능)
+    const handleDelete = () => {
+        if (!formData.editReason?.trim()) return alert('삭제 사유를 입력해주세요. (수정 사유 칸)');
+        if (!window.confirm(`'${formData.name}' 학생을 삭제할까요?\n목록에서 숨겨지며, '삭제된 학생' 페이지에서 복원할 수 있어요.`)) return;
+        onSave({...formData, status: 5});
+    };
+
     return (
         <div className={styles.overlay}>
             <div className={styles.modalContent}>
@@ -203,6 +210,8 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, mode = '
                                     <option value={0}>새친구</option>
                                     <option value={1}>일반</option>
                                     <option value={3}>별분</option>
+                                    {/* 삭제된 학생을 열었을 때 상태 표시 + 다른 상태로 바꿔 복원 */}
+                                    {formData.status === 5 && <option value={5}>삭제됨</option>}
                                 </>
                             ) : (
                                 <>
@@ -277,6 +286,15 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, mode = '
                 )}
 
                 <div className={styles.buttonContainer}>
+                    {mode === 'admin' && studentInfo && formData.status !== 5 && (
+                        <button
+                            onClick={handleDelete}
+                            className={styles.btnCancel}
+                            style={{marginRight: 'auto', color: '#fff', background: '#e03131', borderColor: '#e03131'}}
+                        >
+                            삭제
+                        </button>
+                    )}
                     <button onClick={onClose} className={styles.btnCancel}>취소</button>
                     <button onClick={handleSubmit} className={styles.btnSave}>저장하기</button>
                 </div>

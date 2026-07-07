@@ -6,6 +6,11 @@ import java.util.List;
 
 public class AdminDto {
 
+    // 관리자 PIN 게이트 로그인
+    public record LoginRequest(String pin) {}
+
+    public record LoginResponse(String token, Long expiresAt) {}
+
     // 관리자 출석 수정: 변경된 학생들만 사유와 함께 전달
     public record AttendanceEditRequest(
             LocalDate date,          // 수정 대상 출석일 (히스토리 status_change_date 로 기록)
