@@ -62,6 +62,18 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     """)
     List<StudentDto.SummaryInfo> findDeletedStudentSummaryInfo();
 
+    // 홈 퀵서치: 삭제(5) 제외 전체. 별분(3)은 맨 아래, 나머지는 이름순
+    @Query("""
+        SELECT new com.leenjae.dto.StudentDto$SearchInfo(
+            s.id, s.name, s.birthday, s.school, c.grade, c.classNo, s.status
+        )
+        FROM Student s
+        LEFT JOIN s.classroom c
+        WHERE s.status <> 5
+        ORDER BY CASE WHEN s.status = 3 THEN 1 ELSE 0 END ASC, s.name ASC
+    """)
+    List<StudentDto.SearchInfo> findAllForSearch();
+
 
     List<Student> findByStatus(Integer status);
 }

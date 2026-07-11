@@ -101,6 +101,12 @@ public class AttendanceController {
         return attendanceService.getStudent(id);
     }
 
+    // 홈 퀵서치용 학생 목록 (이름/생일/학교/학년반/상태, 삭제 제외)
+    @GetMapping("/students/search")
+    public List<StudentDto.SearchInfo> getStudentsForSearch() {
+        return attendanceService.getStudentsForSearch();
+    }
+
     @PostMapping("/student")
     public ResponseEntity<Void> registerStudent(
             @RequestBody StudentDto.Info info
