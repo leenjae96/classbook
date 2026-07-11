@@ -4,6 +4,7 @@ import "../App.css";
 import {useEffect, useState} from "react";
 import {Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import {apiFetch} from "../hooks/api.ts";
+import StudentQuickSearch from "../components/common/StudentQuickSearch.tsx";
 
 interface WeeklyStats {
     date: string;
@@ -208,6 +209,8 @@ const Home = () => {
             )}
 
             <h2 className="dashboard-title">대시보드 홈</h2>
+
+            <StudentQuickSearch />
 
             <div className="dashboard-grid">
                 {/* 1. 출석 교사보고서 카드 */}

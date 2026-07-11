@@ -450,6 +450,11 @@ public class AttendanceService {
         studentRepository.deleteById(studentId);
     }
 
+    // 홈 퀵서치용 경량 학생 목록 (삭제 제외, 별분은 맨 아래)
+    public List<StudentDto.SearchInfo> getStudentsForSearch() {
+        return studentRepository.findAllForSearch();
+    }
+
     public StudentDto.Info getStudent(Long id) {
         Student s = studentRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("학생을 찾을 수 없습니다. id=" + id));
