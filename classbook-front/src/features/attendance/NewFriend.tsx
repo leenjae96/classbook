@@ -161,7 +161,8 @@ const NewFriend = () => {
                         const url = '/api/attendances/new-friend';
                         // 백엔드(EditStudentInfo)는 수정 사유를 comments 로 받음 → editReason 매핑
                         const { editReason, ...rest } = data;
-                        await fetch(url, {
+                        // apiFetch 는 응답 실패(예: 번호 중복 409)를 서버 메시지와 함께 throw 함
+                        await apiFetch(url, {
                             method: method,
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({ ...rest, comments: editReason }),
@@ -171,7 +172,8 @@ const NewFriend = () => {
                         // 저장 후 목록을 갱신하기 위해 페이지 새로고침 (또는 fetch 함수 재호출)
                     } catch (error) {
                         console.error("학생 정보 저장 실패:", error);
-                        alert("저장에 실패했습니다. 다시 시도해주세요.");
+                        // 번호 중복 등 서버가 내려준 메시지를 그대로 노출
+                        alert(error instanceof Error && error.message ? error.message : "저장에 실패했습니다. 다시 시도해주세요.");
                     }
                 }}
             />
