@@ -86,6 +86,11 @@ public class Student {
         this.status = Status.NORMAL.getCode();
     }
 
+    // 소프트 삭제: 상태만 삭제(5)로 변경 (다른 인적사항·반은 보존)
+    public void softDelete() {
+        this.status = Status.DELETED.getCode();
+    }
+
     @Builder
     public Student(
             String name,

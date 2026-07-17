@@ -19,7 +19,7 @@ public class StudentDto {
     ) {
     }
 
-    // 홈 퀵서치용 경량 정보 (이름/나이(생일)/학교/학년반/상태)
+    // 홈 퀵서치용 경량 정보 (이름/나이(생일)/학교/학년반/반선생님/상태)
     public record SearchInfo(
             Long id,
             String name,
@@ -27,6 +27,7 @@ public class StudentDto {
             String school,
             Integer grade,
             String classNo,
+            String teacherName,
             Integer status
     ) {
     }

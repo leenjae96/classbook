@@ -11,6 +11,9 @@ public class AdminDto {
 
     public record LoginResponse(String token, Long expiresAt) {}
 
+    // 학생 소프트 삭제 사유
+    public record StudentDeleteRequest(String reason) {}
+
     // 관리자 출석 수정: 변경된 학생들만 사유와 함께 전달
     public record AttendanceEditRequest(
             LocalDate date,          // 수정 대상 출석일 (히스토리 status_change_date 로 기록)

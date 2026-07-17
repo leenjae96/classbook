@@ -363,6 +363,27 @@ public class AttendanceService {
                 .toList();
     }
 
+    // 빈 문자열 번호는 NULL로 저장 (unique 인덱스에서 여러 명 허용 + '' 중복 방지)
+    private String blankToNull(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    // 본인 연락처 중복 경고 메시지 (기존 학생 정보 포함)
+    private String duplicatePhoneMessage(List<StudentDto.SearchInfo> dups) {
+        StudentDto.SearchInfo d = dups.get(0);
+        String cls;
+        if (d.grade() == null) cls = "학년 미지정";
+        else if (d.grade() == 0) cls = "0".equals(d.classNo()) ? "1부 여자" : "1부 남자";
+        else cls = d.classNo() != null ? d.grade() + "학년 " + d.classNo() + "반" : d.grade() + "학년";
+        String school = (d.school() != null && !d.school().isBlank()) ? d.school() + "중" : "학교 미상";
+        String bday = d.birthday() != null ? d.birthday().toString() : "생일 미상";
+        String statusLabel = switch (d.status()) {
+            case 0 -> "새친구"; case 1 -> "일반"; case 2 -> "졸업"; case 3 -> "별분"; case 5 -> "삭제됨"; default -> "휴직";
+        };
+        return "이미 등록된 번호입니다. 기존 학생: " + d.name()
+                + " (" + statusLabel + " · " + cls + " · " + school + " · " + bday + ")";
+    }
+
     @Transactional
     public void registerStudent(StudentDto.Info info) {
         log.info(info.toString());
@@ -371,13 +392,21 @@ public class AttendanceService {
             classroom = classroomRepository.findById(info.classroomId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 classroomId과 매칭되는 classroom 정보가 없습니다. :/ " + info.classroomId()));
         }
+        // 본인 연락처 중복 차단 (번호가 있을 때만)
+        String phone = blankToNull(info.phone());
+        if (phone != null) {
+            List<StudentDto.SearchInfo> dups = studentRepository.findByPhoneForDuplicate(phone);
+            if (!dups.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, duplicatePhoneMessage(dups));
+            }
+        }
         studentRepository.save(
                 Student.builder()
                         .name(info.name())
                         .classroom(classroom)
                         .gender(info.gender())
                         .school(info.school())
-                        .phone(info.phone())
+                        .phone(phone)
                         .parentPhone(info.parentPhone())
                         .address(info.address())
                         .birthday(info.birthday())
@@ -397,6 +426,17 @@ public class AttendanceService {
         if (info.classroomId() != null) {
             classroom = classroomRepository.findById(info.classroomId())
                     .orElseThrow(() -> new IllegalArgumentException("해당 classroomId과 매칭되는 classroom 정보가 없습니다. :/ " + info.classroomId()));
+        }
+
+        // 본인 연락처 중복 차단 (자기 자신 제외, 번호가 있을 때만)
+        String phone = blankToNull(info.phone());
+        if (phone != null) {
+            List<StudentDto.SearchInfo> dups = studentRepository.findByPhoneForDuplicate(phone).stream()
+                    .filter(d -> !d.id().equals(info.id()))
+                    .toList();
+            if (!dups.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, duplicatePhoneMessage(dups));
+            }
         }
 
         Integer oldStatus = existingStudent.getStatus();
@@ -433,7 +473,7 @@ public class AttendanceService {
                 info.name(),
                 info.gender(),
                 info.school(),
-                info.phone(),
+                phone,
                 info.parentPhone(),
                 info.address(),
                 info.birthday(),
@@ -448,6 +488,25 @@ public class AttendanceService {
     @Transactional
     public void deleteStudent(Long studentId) {
         studentRepository.deleteById(studentId);
+    }
+
+    // 소프트 삭제(status=5) — 중복검사 없이 상태만 변경하고 사유를 히스토리에 기록
+    @Transactional
+    public void softDeleteStudent(Long id, String reason) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("학생을 찾을 수 없습니다. id=" + id));
+        studentHistoryRepository.save(
+                StudentHistory.builder()
+                        .student(student)
+                        .oldClassroom(student.getClassroom())
+                        .newClassroom(student.getClassroom())
+                        .date(LocalDate.now())
+                        .preStatus(student.getStatus())
+                        .postStatus(Status.DELETED.getCode())
+                        .comments(reason == null || reason.isBlank() ? "삭제" : reason.trim())
+                        .build()
+        );
+        student.softDelete();
     }
 
     // 홈 퀵서치용 경량 학생 목록 (삭제 제외, 별분은 맨 아래)

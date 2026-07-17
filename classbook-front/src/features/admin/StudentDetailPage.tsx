@@ -141,6 +141,25 @@ const StudentDetailPage = () => {
         }
     };
 
+    // 삭제 버튼 → 전용 엔드포인트로 소프트 삭제 (중복검사 없이 status=5 + 사유 히스토리)
+    const handleDelete = async (reason: string) => {
+        if (!selectedStudent?.id) return;
+        try {
+            await apiFetch(`/api/administrator/students/${selectedStudent.id}/delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason }),
+            });
+            alert('삭제되었습니다.');
+            setIsModalOpen(false);
+            if (view === 'active') fetchAllStudentsSummary();
+            else fetchDeletedStudents();
+        } catch (error) {
+            console.error('삭제 실패:', error);
+            alert(error instanceof Error && error.message ? error.message : '삭제에 실패했습니다.');
+        }
+    };
+
     // 버튼에 상태별 클래스 부여 로직 (새친구, 별분반 구분용)
     const getButtonClass = (status: number) => {
         if (status === 0) return `${styles.studentBtn} ${styles.statusNew}`;
@@ -223,6 +242,7 @@ const StudentDetailPage = () => {
                 mode="admin"
                 studentInfo={selectedStudent}
                 onSave={handleSave}
+                onDelete={handleDelete}
             />
         </div>
     );

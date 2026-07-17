@@ -9,6 +9,7 @@ interface SearchInfo {
     school: string | null;
     grade: number | null;
     classNo: string | null;
+    teacherName: string | null;
     status: number;
 }
 
@@ -90,6 +91,7 @@ const StudentQuickSearch = () => {
                         results.map(s => {
                             const sub = [
                                 classLabel(s.grade, s.classNo),
+                                s.teacherName ? `${s.teacherName}쌤` : null,
                                 s.school ? `${s.school}중` : null,
                             ].filter(Boolean).join(' · ');
                             return (

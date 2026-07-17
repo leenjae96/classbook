@@ -68,6 +68,16 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    // 학생 소프트 삭제 (status=5, 사유는 히스토리 기록)
+    @PostMapping("/students/{id}/delete")
+    public ResponseEntity<Void> softDeleteStudent(
+            @PathVariable Long id,
+            @RequestBody AdminDto.StudentDeleteRequest req
+    ) {
+        attendanceService.softDeleteStudent(id, req.reason());
+        return ResponseEntity.ok().build();
+    }
+
     //@DeleteMapping("/students")
     //public ResponseEntity<Void> saveStudent(
     //        @RequestParam Long studentId

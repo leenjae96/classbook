@@ -8,12 +8,14 @@ interface Props {
     onClose: () => void;
     studentInfo: StudentInfo | null;
     onSave: (data: Partial<StudentInfo> & { editReason?: string }) => void;
+    // 삭제 버튼 클릭 시 사유와 함께 호출 (관리자 모드에서만 사용)
+    onDelete?: (reason: string) => void;
     // 'newFriend' : 새친구 페이지 (등반 처리 / status 0·1)
     // 'admin'     : 관리자 인적사항 수정 (status 0·1·3)
     mode?: 'newFriend' | 'admin';
 }
 
-export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, mode = 'newFriend'}: Props) => {
+export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete, mode = 'newFriend'}: Props) => {
     const grades: number[] = [1, 2, 3, 0];
     const [grade, setGrade] = useState<number | undefined>(undefined);
     const [classrooms, setClassrooms] = useState<ClassroomSummary[]>([]);
@@ -149,11 +151,14 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, mode = '
         onSave(formData);
     };
 
-    // 소프트 삭제: status=5로 저장 (row는 남기고 목록에서만 숨김 → 삭제된 학생 페이지에서 복원 가능)
+    // 소프트 삭제: 삭제 버튼 → 사유 입력 팝업 → onDelete(사유) (수정 사유 칸과 무관, 전용 엔드포인트로 처리)
     const handleDelete = () => {
-        if (!formData.editReason?.trim()) return alert('삭제 사유를 입력해주세요. (수정 사유 칸)');
-        if (!window.confirm(`'${formData.name}' 학생을 삭제할까요?\n목록에서 숨겨지며, '삭제된 학생' 페이지에서 복원할 수 있어요.`)) return;
-        onSave({...formData, status: 5});
+        const reason = window.prompt(
+            `'${formData.name}' 학생을 삭제합니다.\n삭제 사유를 입력하세요.\n(목록에서 숨겨지며 '삭제된 학생' 탭에서 복원 가능)`
+        );
+        if (reason === null) return;                 // 취소
+        if (!reason.trim()) return alert('삭제 사유를 입력해주세요.');
+        onDelete?.(reason.trim());
     };
 
     return (
@@ -286,7 +291,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, mode = '
                 )}
 
                 <div className={styles.buttonContainer}>
-                    {mode === 'admin' && studentInfo && formData.status !== 5 && (
+                    {mode === 'admin' && studentInfo && formData.status !== 5 && onDelete && (
                         <button
                             onClick={handleDelete}
                             className={styles.btnCancel}
