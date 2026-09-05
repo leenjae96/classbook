@@ -74,6 +74,10 @@ public class Student {
     @Comment("비고")
     private String remark;
 
+    @Column(length = 50)
+    @Comment("전도자 (공란=스스로, 이름 텍스트)")
+    private String evangelist;
+
     //LEE: roles
     @ElementCollection(targetClass = StudentRole.class)
     @CollectionTable(name = "student_roles", joinColumns = @JoinColumn(name = "student_id"))
@@ -104,7 +108,8 @@ public class Student {
             LocalDate registeredAt,
             LocalDate promotedAt,
             String remark,
-            Classroom classroom
+            Classroom classroom,
+            String evangelist
     ) {
         this.name = name;
         this.gender = gender;
@@ -118,6 +123,7 @@ public class Student {
         this.promotedAt = promotedAt;
         this.remark = remark;
         this.classroom = classroom;
+        this.evangelist = evangelist;
     }
 
     public void update(
@@ -132,7 +138,8 @@ public class Student {
             LocalDate registeredAt,
             LocalDate promotedAt,
             String remark,
-            Classroom classroom
+            Classroom classroom,
+            String evangelist
     ) {
         this.name = name;
         this.gender = gender;
@@ -146,5 +153,6 @@ public class Student {
         this.promotedAt = promotedAt;
         this.remark = remark;
         this.classroom = classroom;
+        this.evangelist = evangelist;
     }
 }

@@ -53,6 +53,12 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getDeletedStudentSummaryInfo());
     }
 
+    // 인적사항 엑셀 export용 전체 학생 (ABCD 포함, 삭제 제외)
+    @GetMapping(value = "/students/export")
+    public ResponseEntity<List<AdminDto.StudentExportRow>> getStudentExport() {
+        return ResponseEntity.ok(adminService.getStudentExport());
+    }
+
     @GetMapping("/total-reports")
     public ResponseEntity<List<AdminDto.TotalReportResponse>> getTotalReports(
             @RequestParam LocalDate date) {

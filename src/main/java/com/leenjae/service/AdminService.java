@@ -21,7 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Slf4j
@@ -45,6 +49,80 @@ public class AdminService {
     // 소프트 삭제(status=5)된 학생 목록
     public List<StudentDto.SummaryInfo> getDeletedStudentSummaryInfo() {
         return studentRepository.findDeletedStudentSummaryInfo();
+    }
+
+    // 인적사항 엑셀 export (삭제 제외 전체 + ABCD 등급). 별분(3)은 맨 아래, 나머지는 학년/반/이름순
+    public List<AdminDto.StudentExportRow> getStudentExport() {
+        LocalDate today = LocalDate.now(ZoneId.of("Asia/Seoul"));
+        LocalDate yearStart = LocalDate.of(today.getYear(), 1, 1);
+
+        Map<Long, Long> presentCount = new HashMap<>();
+        for (Object[] row : studentAttendanceRepository.countPresentByStudentBetween(yearStart, today)) {
+            presentCount.put((Long) row[0], (Long) row[1]);
+        }
+
+        return studentRepository.findAllForExport().stream()
+                .map(s -> {
+                    Classroom c = s.getClassroom();
+                    LocalDate reg = s.getRegisteredAt();
+                    // 분모 시작: 등록일과 올해 1/1 중 더 늦은 쪽 (25년 등록이어도 최대 올해 1/1부터)
+                    LocalDate start = (reg != null && reg.isAfter(yearStart)) ? reg : yearStart;
+                    long denom = countSundays(start, today);
+                    long numer = presentCount.getOrDefault(s.getId(), 0L);
+                    return new AdminDto.StudentExportRow(
+                            s.getId(),
+                            (c != null && c.getTeacher() != null) ? c.getTeacher().getName() : null,
+                            c != null ? c.getGrade() : null,
+                            c != null ? c.getClassNo() : null,
+                            s.getName(),
+                            s.getSchool(),
+                            s.getGender(),
+                            s.getEvangelist(),
+                            s.getBirthday(),
+                            s.getPhone(),
+                            s.getParentPhone(),
+                            s.getAddress(),
+                            s.getRemark(),
+                            s.getRegisteredAt(),
+                            s.getStatus(),
+                            attendanceGrade(numer, denom)
+                    );
+                })
+                .sorted(
+                        Comparator.comparingInt((AdminDto.StudentExportRow r) ->
+                                        (r.status() != null && r.status() == 3) ? 1 : 0)
+                                .thenComparingInt(r -> r.grade() == null ? Integer.MAX_VALUE : r.grade())
+                                .thenComparingInt(r -> parseClassNo(r.classNo()))
+                                .thenComparing(r -> r.name() == null ? "" : r.name())
+                )
+                .toList();
+    }
+
+    // [start, end] 사이 일요일 수
+    private long countSundays(LocalDate start, LocalDate end) {
+        if (start.isAfter(end)) return 0;
+        LocalDate firstSunday = start.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        if (firstSunday.isAfter(end)) return 0;
+        return ChronoUnit.WEEKS.between(firstSunday, end) + 1;
+    }
+
+    // 출석 등급: D=0회, C=~30%, B=~60%, A=~100%
+    private String attendanceGrade(long numer, long denom) {
+        if (numer <= 0) return "D";
+        if (denom <= 0) return "A";
+        double pct = numer * 100.0 / denom;
+        if (pct <= 30) return "C";
+        if (pct <= 60) return "B";
+        return "A";
+    }
+
+    private int parseClassNo(String classNo) {
+        if (classNo == null) return Integer.MAX_VALUE;
+        try {
+            return Integer.parseInt(classNo);
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
     }
 
     public List<AdminDto.TotalReportResponse> getTotalReports(LocalDate date) {

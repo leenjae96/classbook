@@ -47,7 +47,8 @@ public class StudentDto {
             Integer status,
             LocalDate registeredAt,
             LocalDate promotedAt,
-            String remark
+            String remark,
+            String evangelist
     ) {
     }
     //TODO : response 객체 따로 dto 따로?

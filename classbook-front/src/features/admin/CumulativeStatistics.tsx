@@ -234,6 +234,18 @@ const CumulativeStatistics = () => {
                             </tr>
                         ))}
                         </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colSpan={2} style={{ fontWeight: 'bold', backgroundColor: '#f1f3f5' }}>
+                                출석인원 (총 {teacherSheetData.teachers.length}명)
+                            </td>
+                            {teacherSheetData.headerDates.map(date => (
+                                <td key={date} style={{ fontWeight: 'bold', backgroundColor: '#f1f3f5' }}>
+                                    {teacherSheetData.teachers.filter(t => t.attendances.includes(date)).length}
+                                </td>
+                            ))}
+                        </tr>
+                        </tfoot>
                     </table>
                 </div>
             );
@@ -264,6 +276,18 @@ const CumulativeStatistics = () => {
                             </tr>
                         ))}
                         </tbody>
+                        <tfoot>
+                        <tr>
+                            <td style={{ fontWeight: 'bold', backgroundColor: '#f1f3f5' }}>
+                                출석인원 (총 {specialClassStudents.length}명)
+                            </td>
+                            {sheetData.headerDates.map(date => (
+                                <td key={date} style={{ fontWeight: 'bold', backgroundColor: '#f1f3f5' }}>
+                                    {specialClassStudents.filter(s => s.attendances.includes(date)).length}
+                                </td>
+                            ))}
+                        </tr>
+                        </tfoot>
                     </table>
                 </div>
             );
@@ -286,6 +310,18 @@ const CumulativeStatistics = () => {
                     <tbody>
                     {renderStudentRows(processed, sheetData.headerDates, isNewFriendTab)}
                     </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colSpan={3} style={{ fontWeight: 'bold', backgroundColor: '#f1f3f5' }}>
+                            출석인원 (총 {processed.length}명)
+                        </td>
+                        {sheetData.headerDates.map(date => (
+                            <td key={date} style={{ fontWeight: 'bold', backgroundColor: '#f1f3f5' }}>
+                                {processed.filter(s => s.attendances.includes(date)).length}
+                            </td>
+                        ))}
+                    </tr>
+                    </tfoot>
                 </table>
             </div>
         );

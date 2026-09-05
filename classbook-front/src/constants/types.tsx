@@ -31,6 +31,7 @@ export interface StudentInfo {
     registeredAt: Date;
     promotedAt: Date;
     remark: string;
+    evangelist: string;
 }
 
 export interface Sheet {

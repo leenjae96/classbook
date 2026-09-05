@@ -71,7 +71,8 @@ public class AttendanceDto {
             LocalDate registeredAt,
             LocalDate promotedAt,
             String remark,
-            String comments
+            String comments,
+            String evangelist
     ) {}
 
     public record RawCumulativeStats(

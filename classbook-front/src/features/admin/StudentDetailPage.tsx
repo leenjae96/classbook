@@ -3,6 +3,7 @@ import { apiFetch } from "../../hooks/api.ts";
 import BackButton from "../../components/common/BackButton.tsx";
 import { StudentInfoModal } from "../../components/attendance/StudentInfoModal.tsx";
 import type { StudentInfo } from "../../constants/types.tsx";
+import { fetchStudentExport, downloadAllStudents, downloadNewFriends } from "../../util/studentExport.ts";
 import styles from './StudentDetailPage.module.css';
 
 // ✨ 백엔드에서 받을 가벼운 요약용 데이터 타입
@@ -141,6 +142,23 @@ const StudentDetailPage = () => {
         }
     };
 
+    // 엑셀 다운로드 (전체 / 새친구)
+    const [downloading, setDownloading] = useState(false);
+    const handleDownload = async (mode: 'all' | 'newfriend') => {
+        if (downloading) return;
+        setDownloading(true);
+        try {
+            const rows = await fetchStudentExport();
+            if (mode === 'all') downloadAllStudents(rows);
+            else downloadNewFriends(rows);
+        } catch (error) {
+            console.error('다운로드 실패:', error);
+            alert(error instanceof Error && error.message ? error.message : '다운로드에 실패했습니다.');
+        } finally {
+            setDownloading(false);
+        }
+    };
+
     // 삭제 버튼 → 전용 엔드포인트로 소프트 삭제 (중복검사 없이 status=5 + 사유 히스토리)
     const handleDelete = async (reason: string) => {
         if (!selectedStudent?.id) return;
@@ -172,23 +190,41 @@ const StudentDetailPage = () => {
             <BackButton />
             <h4>인적사항 수정</h4>
 
-            {/* 재적 / 삭제 탭 토글 (출석 누적 통계 시트 선택 버튼과 동일 크기) */}
-            <div style={{display: 'flex', gap: '4px', marginBottom: '14px'}}>
-                {([['active', '재적 학생'], ['deleted', '삭제된 학생']] as const).map(([key, label]) => (
+            {/* 탭(왼쪽) + 엑셀 다운로드(오른쪽) 한 줄 */}
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '14px'}}>
+                <div style={{display: 'flex', gap: '4px'}}>
+                    {([['active', '재적 학생'], ['deleted', '삭제된 학생']] as const).map(([key, label]) => (
+                        <button
+                            key={key}
+                            onClick={() => setView(key)}
+                            style={{
+                                padding: '6px 16px', borderRadius: '5px', fontSize: '13px', fontWeight: 500,
+                                border: view === key ? '1px solid #4361ee' : '1px solid #dee2e6',
+                                background: view === key ? '#4361ee' : '#f8f9fa',
+                                color: view === key ? '#fff' : '#495057',
+                                cursor: 'pointer', transition: 'all 0.15s ease',
+                            }}
+                        >
+                            {label}
+                        </button>
+                    ))}
+                </div>
+                <div style={{display: 'flex', gap: '8px'}}>
                     <button
-                        key={key}
-                        onClick={() => setView(key)}
-                        style={{
-                            padding: '6px 16px', borderRadius: '5px', fontSize: '13px', fontWeight: 500,
-                            border: view === key ? '1px solid #4361ee' : '1px solid #dee2e6',
-                            background: view === key ? '#4361ee' : '#f8f9fa',
-                            color: view === key ? '#fff' : '#495057',
-                            cursor: 'pointer', transition: 'all 0.15s ease',
-                        }}
+                        onClick={() => handleDownload('all')}
+                        disabled={downloading}
+                        style={{padding: '6px 12px', borderRadius: '5px', border: 'none', background: '#2f9e44', color: '#fff', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer'}}
                     >
-                        {label}
+                        📥 전체 인적사항
                     </button>
-                ))}
+                    <button
+                        onClick={() => handleDownload('newfriend')}
+                        disabled={downloading}
+                        style={{padding: '6px 12px', borderRadius: '5px', border: 'none', background: '#2f9e44', color: '#fff', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer'}}
+                    >
+                        📥 새친구 인적사항
+                    </button>
+                </div>
             </div>
 
             {/* 화면 덮는 로딩 바 (상세 정보 불러올 때 방어용) */}

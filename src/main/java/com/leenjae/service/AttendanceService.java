@@ -357,7 +357,8 @@ public class AttendanceService {
                                 s.getStatus(),
                                 s.getRegisteredAt(),
                                 s.getPromotedAt(),
-                                s.getRemark()
+                                s.getRemark(),
+                                s.getEvangelist()
                         )
                 )
                 .toList();
@@ -414,6 +415,7 @@ public class AttendanceService {
                         .registeredAt(info.registeredAt())
                         .promotedAt(info.promotedAt())
                         .remark(info.remark())
+                        .evangelist(blankToNull(info.evangelist()))
                         .build()
         );
     }
@@ -481,7 +483,8 @@ public class AttendanceService {
                 info.registeredAt(),
                 info.promotedAt(),
                 info.remark(),
-                newClassroom
+                newClassroom,
+                blankToNull(info.evangelist())
         );
     }
 
@@ -533,7 +536,8 @@ public class AttendanceService {
                 s.getStatus(),
                 s.getRegisteredAt(),
                 s.getPromotedAt(),
-                s.getRemark()
+                s.getRemark(),
+                s.getEvangelist()
         );
     }
 
@@ -549,6 +553,10 @@ public class AttendanceService {
             // 선생님이 호출한 경우: 특정 반만 조회
             rawData = studentAttendanceRepository.getRawCumulativeStatsByClassroom(grade, classNo, startDate, endDate);
         }
+        // 일요일 출석만 남김 (토요일 찬양팀 등 혼입 제거). 학생정보만 있는 null-date row는 유지
+        rawData = rawData.stream()
+                .filter(r -> r.attendanceDate() == null || r.attendanceDate().getDayOfWeek() == DayOfWeek.SUNDAY)
+                .toList();
         // 전체 날짜 중에서 null이 아닌 것만 'MM/dd' 포맷으로 추출 후 중복 제거 & 정렬 (headerDates)
         List<String> headerDates = rawData.stream()
                 .map(AttendanceDto.RawCumulativeStats::attendanceDate)
@@ -601,6 +609,10 @@ public class AttendanceService {
 
         List<AttendanceDto.RawCumulativeStats> rawData =
                 studentAttendanceRepository.getRawCumulativeStatsForNewFriends(startDate, endDate);
+        // 일요일 출석만 (토요일 찬양팀 등 제외), 학생정보만 있는 null-date row는 유지
+        rawData = rawData.stream()
+                .filter(r -> r.attendanceDate() == null || r.attendanceDate().getDayOfWeek() == DayOfWeek.SUNDAY)
+                .toList();
 
         List<String> headerDates = rawData.stream()
                 .map(AttendanceDto.RawCumulativeStats::attendanceDate)
@@ -645,6 +657,10 @@ public class AttendanceService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd");
 
         List<TeacherAttendance> records = teacherAttendanceRepository.findByDateBetween(startDate, endDate);
+        // 일요일 출석만 (토요일 등 제외)
+        records = records.stream()
+                .filter(r -> r.getDate().getDayOfWeek() == DayOfWeek.SUNDAY)
+                .toList();
 
         List<String> headerDates = records.stream()
                 .map(r -> r.getDate().format(formatter))

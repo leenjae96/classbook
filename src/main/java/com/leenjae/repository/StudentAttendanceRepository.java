@@ -44,6 +44,20 @@ public interface StudentAttendanceRepository extends JpaRepository<StudentAttend
             @Param("beforeDate") LocalDate beforeDate
     );
 
+    // ABCD 등급용: 기간 내 출석(true) 횟수를 학생별로 집계
+    @Query("""
+        SELECT sa.student.id, COUNT(sa)
+        FROM StudentAttendance sa
+        WHERE sa.status = true
+          AND sa.date >= :from
+          AND sa.date <= :to
+        GROUP BY sa.student.id
+    """)
+    List<Object[]> countPresentByStudentBetween(
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to
+    );
+
     //대시보드용
     @Query("""
     SELECT new com.leenjae.dto.StatisticsDto$WeeklyGradeStats(
