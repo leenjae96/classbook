@@ -89,6 +89,15 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     """)
     List<StudentDto.SearchInfo> findByPhoneForDuplicate(@Param("phone") String phone);
 
+    // 인적사항 엑셀 export용: 삭제(5) 제외 전체 + 반·담당쌤 fetch
+    @Query("""
+        SELECT s FROM Student s
+        LEFT JOIN FETCH s.classroom c
+        LEFT JOIN FETCH c.teacher t
+        WHERE s.status <> 5
+    """)
+    List<Student> findAllForExport();
+
 
     List<Student> findByStatus(Integer status);
 }

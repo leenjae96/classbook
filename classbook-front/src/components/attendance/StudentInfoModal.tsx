@@ -3,6 +3,58 @@ import type {StudentInfo, ClassroomSummary} from '../../constants/types.tsx';
 import {apiFetch} from "../../hooks/api.ts";
 import styles from './StudentInfoModal.module.css';
 
+// 전도자 입력: 자유 텍스트 + 학생 이름 검색 시 이름 자동 채움 (선택)
+interface EvangelistCandidate { name: string; grade: number | null; classNo: string | null; }
+const EvangelistInput = ({value, onChange, className}: { value: string; onChange: (v: string) => void; className?: string }) => {
+    const [all, setAll] = useState<EvangelistCandidate[]>([]);
+    const [focused, setFocused] = useState(false);
+    const fetchedRef = useRef(false);
+
+    const ensureLoaded = () => {
+        if (fetchedRef.current) return;
+        fetchedRef.current = true;
+        apiFetch('/api/attendances/students/search')
+            .then((data: EvangelistCandidate[]) => setAll(data))
+            .catch(() => { fetchedRef.current = false; });
+    };
+
+    const q = value.trim();
+    const suggestions = q ? all.filter(s => s.name.includes(q)).slice(0, 6) : [];
+    const clsLabel = (g: number | null, c: string | null) =>
+        g === null || g === undefined ? '' : g === 0 ? '1부' : (c ? `${g}-${c}` : `${g}학년`);
+
+    return (
+        <div style={{position: 'relative'}}>
+            <input
+                type="text"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onFocus={() => { setFocused(true); ensureLoaded(); }}
+                onBlur={() => setFocused(false)}
+                placeholder="비우면 '스스로' (또는 이름 입력/검색)"
+                className={className}
+            />
+            {focused && suggestions.length > 0 && (
+                <div style={{
+                    position: 'absolute', top: 'calc(100% + 2px)', left: 0, right: 0, zIndex: 20,
+                    background: 'var(--card-bg, #fff)', border: '1px solid #dee2e6', borderRadius: '6px',
+                    boxShadow: '0 6px 18px rgba(0,0,0,0.14)', maxHeight: '200px', overflowY: 'auto',
+                }}>
+                    {suggestions.map((s, i) => (
+                        <div
+                            key={`${s.name}-${i}`}
+                            onMouseDown={() => { onChange(s.name); setFocused(false); }}
+                            style={{padding: '8px 10px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid #f1f3f5'}}
+                        >
+                            {s.name} <span style={{fontSize: '12px', color: '#adb5bd'}}>{clsLabel(s.grade, s.classNo)}</span>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 interface Props {
     isOpen: boolean;
     onClose: () => void;
@@ -60,6 +112,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                 school: '',
                 status: 0,
                 remark: '',
+                evangelist: '',
                 birthday: undefined,
                 registeredAt: new Date(),
                 promotedAt: undefined,
@@ -266,6 +319,14 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                         <input type="text" name="school" value={formData.school || ''} onChange={handleChange} placeholder="예: 하남" className={styles.schoolInput} />
                         <span className={styles.schoolSuffix}>중학교</span>
                     </div>
+                </div>
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>전도자</label>
+                    <EvangelistInput
+                        value={formData.evangelist || ''}
+                        onChange={(v) => setFormData(prev => ({...prev, evangelist: v}))}
+                        className={styles.inputField}
+                    />
                 </div>
                 <div className={styles.formGroup}>
                     <label className={styles.label}>주소</label>

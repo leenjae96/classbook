@@ -146,7 +146,7 @@
 /* 엑셀 다운로드 버튼 스타일 */
 .excelBtn {
     padding: 6px 12px;
-    background-color: #217346;
+    background-color: #2f9e44;
     color: white;
     border: none;
     border-radius: 5px;
@@ -157,7 +157,7 @@
 }
 
 .excelBtn:hover {
-    background-color: #1a5c38;
+    background-color: #268a3b;
 }
 
 /* ── 일반학생/새친구 탭 틀고정 (학년 / 반 / 이름) ── */

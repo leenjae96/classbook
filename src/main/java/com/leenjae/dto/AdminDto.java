@@ -14,6 +14,26 @@ public class AdminDto {
     // 학생 소프트 삭제 사유
     public record StudentDeleteRequest(String reason) {}
 
+    // 인적사항 엑셀 export 행 (전체/새친구 공통)
+    public record StudentExportRow(
+            Long id,
+            String teacherName,     // 담당쌤
+            Integer grade,
+            String classNo,
+            String name,
+            String school,
+            Boolean gender,
+            String evangelist,      // 전도자 (공란=스스로)
+            LocalDate birthday,
+            String phone,
+            String parentPhone,
+            String address,
+            String remark,
+            LocalDate registeredAt, // 등록일 (새친구 시트용)
+            Integer status,
+            String attendanceGrade  // 출석 ABCD
+    ) {}
+
     // 관리자 출석 수정: 변경된 학생들만 사유와 함께 전달
     public record AttendanceEditRequest(
             LocalDate date,          // 수정 대상 출석일 (히스토리 status_change_date 로 기록)
