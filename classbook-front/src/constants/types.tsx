@@ -48,6 +48,7 @@ export interface StudentAttendance {
     comments: string;
     pastAttendanceCount: number | null; // 새친구(status=0)만 값 있음
     pastAttendanceLastDate: string | null; // 시트 날짜 이전 가장 최근 출석일 (yyyy-MM-dd)
+    registeredAt: string | null; // 첫 출석일(등록일, yyyy-MM-dd) — 새친구 'new' 뱃지용
 }
 export interface TeacherReport {
     id: number;

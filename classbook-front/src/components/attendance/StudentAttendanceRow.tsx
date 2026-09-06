@@ -82,6 +82,17 @@ export const StudentAttendanceRow = ({ studentCheck, onToggle, onCommentChange, 
                 }}
                 onPointerLeave={handlePointerLeave}
             >
+                {/* 첫 출석일이 이 주(일요일=시트 날짜)인 새친구 → 이름 위에 'new' */}
+                {studentCheck.studentStatus === 0 && sheetDate && studentCheck.registeredAt === sheetDate && (
+                    <span style={{
+                        display: 'block',
+                        fontSize: '9px',
+                        fontWeight: 'bold',
+                        color: '#2f9e44',
+                        lineHeight: 1,
+                        marginBottom: '2px'
+                    }}>new</span>
+                )}
                 {studentCheck.studentName}
                 {/* 새친구 누적 출석 표시: (N회)MM/dd — 누적 3회 이상인 새친구만 */}
                 {(() => {
