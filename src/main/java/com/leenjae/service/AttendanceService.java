@@ -137,6 +137,7 @@ public class AttendanceService {
                                     .comments(null)
                                     .pastAttendanceCount(pastCount)
                                     .pastAttendanceLastDate(pastLastDate)
+                                    .registeredAt(student.getRegisteredAt())
                                     .build();
                         } else {
                             return AttendanceDto.StudentAttendance.builder()
@@ -147,6 +148,7 @@ public class AttendanceService {
                                     .comments(sa.getComments())
                                     .pastAttendanceCount(pastCount)
                                     .pastAttendanceLastDate(pastLastDate)
+                                    .registeredAt(student.getRegisteredAt())
                                     .build();
                         }
                     })

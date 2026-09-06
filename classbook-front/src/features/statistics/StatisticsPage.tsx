@@ -135,7 +135,8 @@ const StatisticsPage = () => {
 
                                 {/* 반별 디테일 Row */}
                                 {stats.map((stat, idx) => {
-                                    const isMissing = stat.attendance === 0;
+                                    // 빨간 표시 기준: 출석 인원 0명이 아니라 '교사 출석부 미제출'
+                                    const isMissing = !stat.isSummited;
 
                                     return (
                                         <div key={idx}
