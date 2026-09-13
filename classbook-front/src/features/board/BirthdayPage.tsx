@@ -2,15 +2,19 @@ import { useEffect, useState } from "react";
 import type { BirthdayResponse, StudentBirthday, TeacherBirthday } from "../../constants/types.tsx";
 import BackButton from "../../components/common/BackButton.tsx";
 import { apiFetch } from "../../hooks/api.ts";
-import styles from './NoticePage.module.css';
+import styles from './BirthdayPage.module.css';
 
 const formatClassLabel = (grade: number, classNo: string): string => {
     if (grade === 0) return classNo === '0' ? '1부여' : '1부남';
     return `${grade}-${classNo}`;
 };
 
-const NoticePage = () => {
-    const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
+// 게시판 > 생일자 확인
+const BirthdayPage = () => {
+    // 개인정보 보호: 이번 달과 다음 달만 볼 수 있음 (백엔드도 동일하게 제한)
+    const thisMonth = new Date().getMonth() + 1;
+    const nextMonth = thisMonth === 12 ? 1 : thisMonth + 1;
+    const [selectedMonth, setSelectedMonth] = useState<number>(thisMonth);
     const [birthdayResponse, setBirthdayResponse] = useState<BirthdayResponse | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -22,19 +26,25 @@ const NoticePage = () => {
             .finally(() => setLoading(false));
     }, [selectedMonth]);
 
-    const goPrev = () => setSelectedMonth(m => (m === 1 ? 12 : m - 1));
-    const goNext = () => setSelectedMonth(m => (m === 12 ? 1 : m + 1));
+    const canPrev = selectedMonth === nextMonth;
+    const canNext = selectedMonth === thisMonth;
+    const goPrev = () => { if (canPrev) setSelectedMonth(thisMonth); };
+    const goNext = () => { if (canNext) setSelectedMonth(nextMonth); };
+    const disabledStyle = {opacity: 0.3, cursor: 'not-allowed'};
 
     return (
         <div className="content">
             <BackButton />
+            <h4>생일자 확인</h4>
             <div className={styles.container}>
 
                 {/* 월 네비게이션 */}
                 <div className={styles.monthNav}>
-                    <button className={styles.navBtn} onClick={goPrev}>◀</button>
+                    <button className={styles.navBtn} onClick={goPrev} disabled={!canPrev}
+                            style={canPrev ? undefined : disabledStyle}>◀</button>
                     <span className={styles.monthLabel}>{selectedMonth}월 생일</span>
-                    <button className={styles.navBtn} onClick={goNext}>▶</button>
+                    <button className={styles.navBtn} onClick={goNext} disabled={!canNext}
+                            style={canNext ? undefined : disabledStyle}>▶</button>
                 </div>
 
                 {loading ? (
@@ -88,4 +98,4 @@ const NoticePage = () => {
     );
 };
 
-export default NoticePage;
+export default BirthdayPage;

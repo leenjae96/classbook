@@ -247,19 +247,18 @@ const Home = () => {
                     </div>
                 </div>
 
-                {/* 2. 공지사항 카드 */}
+                {/* 2. 게시판 카드 */}
                 <div className="dashboard-card">
-                    <div className="card-header" onClick={() => navigate(paths.noticeCategorySelect.url)}>
-                        <h3>📢 최근 공지사항</h3>
+                    <div className="card-header" onClick={() => navigate(paths.board.url)}>
+                        <h3>📋 게시판</h3>
                         <span className="arrow">➔</span>
                     </div>
                     <div className="card-body">
-                        {/* 실제로는 API에서 최근 3개를 불러와서 맵핑하면 돼 */}
-                        <ul className="notice-list">
-                            <li><span className="badge">공지</span> 최근 공지사항이 들어갈 자리입니다.</li>
-                            <li><span className="badge urgent">긴급</span> (개발 중)</li>
-                            <li><span className="badge">안내</span></li>
-                        </ul>
+                        <div className="quick-links">
+                            <button onClick={() => navigate(paths.birthday.url)}>생일자 확인</button>
+                            <button onClick={() => navigate(paths.newFriendWeekly.url)}>새친구/등반</button>
+                            <button disabled style={{opacity: 0.5, cursor: 'not-allowed'}}>주금새(예정)</button>
+                        </div>
                     </div>
                 </div>
 

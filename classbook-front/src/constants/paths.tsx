@@ -1,5 +1,5 @@
 const ATTENDANCE_BASE = 'attendance';
-const NOTICE_BASE = 'notice';
+const BOARD_BASE = 'board';
 const STATISTICS_BASE = 'statistics';
 const ADMINISTRATOR_BASE = 'administrator';
 
@@ -39,9 +39,17 @@ export const paths = {
         api: ``
     },
 
-    // - 공지 (Notice) ---
-    noticeCategorySelect: {
-        url: NOTICE_BASE,
+    // - 게시판 (Board) ---
+    board: {
+        url: `/${BOARD_BASE}`,
+        api: ``
+    },
+    birthday: {
+        url: `/${BOARD_BASE}/birthday`,
+        api: ``
+    },
+    newFriendWeekly: {
+        url: `/${BOARD_BASE}/new-friend-weekly`,
         api: ``
     },
 

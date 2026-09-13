@@ -8,23 +8,45 @@ import { getMostRecentSunday, snapToSunday } from "../../util/dateUtils.tsx";
 import BackButton from "../../components/common/BackButton.tsx";
 import './ClassroomSheet.css';
 import {ClassroomCumulativeStatisticsModal} from "../../components/attendance/ClassroomCumulativeStatisticsModal.tsx";
+import {StudentInfoModal} from "../../components/attendance/StudentInfoModal.tsx";
+import type {StudentInfo} from "../../constants/types.tsx";
+import {apiFetch} from "../../hooks/api.ts";
 
 const ClassroomSheet = () => {
     const { grade, classNo } = useParams();
 
     // 모달 열림/닫힘 상태 관리
     const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
     const {
         selectedDate, setSelectedDate, studentAttendances,
         toggleStudentAttendance, updateStudentAttendanceComment,
         teacherReport, handleWorshipChange, handleOtnChange,
         handleDawnPrayChange, handleTeacherReportCommentChange, submitAttendance,
-        loading, serverOffsetMs
+        loading, serverOffsetMs, refreshStudents
     } = useAttendance({
         apiEndpoint: `/api/attendances/sheet?grade=${grade}&classNo=${classNo}`,
         initialDate: getMostRecentSunday()
     });
+
+    // 이 반으로 새친구 등록 → 출석부 명단만 갱신 (저장 전 체크는 유지)
+    const handleAddNewFriend = async (data: Partial<StudentInfo> & { editReason?: string }) => {
+        try {
+            const { editReason, ...rest } = data;
+            await apiFetch('/api/attendances/new-friend', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ ...rest, comments: editReason }),
+            });
+            alert('새친구가 등록되었습니다.');
+            setIsAddModalOpen(false);
+            refreshStudents();
+        } catch (error) {
+            console.error("새친구 등록 실패:", error);
+            alert(error instanceof Error && error.message ? error.message : "저장에 실패했습니다. 다시 시도해주세요.");
+        }
+    };
 
     const todayStr = new Date().toLocaleDateString('en-CA');
     // 서버 시각 기준 당일 14:00 까지 무제한 저장/수정 허용, 이후 잠금
@@ -48,12 +70,26 @@ const ClassroomSheet = () => {
 
             <div className="header-buttons">
                 <BackButton />
-                <button
-                    className="stats-button"
-                    onClick={() => setIsStatsModalOpen(true)}
-                >
-                    누적 통계
-                </button>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        style={{
+                            padding: '5px 10px',
+                            background: '#007bff',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '4px'
+                        }}
+                    >
+                        + 추가
+                    </button>
+                    <button
+                        className="stats-button"
+                        onClick={() => setIsStatsModalOpen(true)}
+                    >
+                        누적 통계
+                    </button>
+                </div>
             </div>
 
             <div className="summary-box">
@@ -158,6 +194,19 @@ const ClassroomSheet = () => {
                 onClose={() => setIsStatsModalOpen(false)}
                 grade={Number(grade)}
                 classNo={classNo!}
+            />
+
+            {/* 새친구 추가: 학년/반은 이 반으로 고정, 첫 출석일 기본값은 보고 있는 날짜 */}
+            <StudentInfoModal
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                mode="newFriend"
+                studentInfo={null}
+                onSave={handleAddNewFriend}
+                fixedClassroom={grade !== undefined && classNo !== undefined
+                    ? { grade: Number(grade), classNo }
+                    : undefined}
+                defaultRegisteredAt={selectedDate}
             />
         </div>
     );

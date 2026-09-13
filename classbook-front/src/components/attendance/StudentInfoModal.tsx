@@ -65,10 +65,17 @@ interface Props {
     // 'newFriend' : 새친구 페이지 (등반 처리 / status 0·1)
     // 'admin'     : 관리자 인적사항 수정 (status 0·1·3)
     mode?: 'newFriend' | 'admin';
+    // 반 출석부에서 추가할 때: 학년/반을 그 반으로 고정 (추가 모드 전용)
+    fixedClassroom?: { grade: number; classNo: string };
+    // 추가 모드의 기본 첫 출석일 (yyyy-MM-dd). 없으면 오늘
+    defaultRegisteredAt?: string;
 }
 
-export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete, mode = 'newFriend'}: Props) => {
+export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete, mode = 'newFriend', fixedClassroom, defaultRegisteredAt}: Props) => {
     const grades: number[] = [1, 2, 3, 0];
+    const fixedGrade = fixedClassroom?.grade;
+    const fixedClassNo = fixedClassroom?.classNo;
+    const isFixed = !studentInfo && fixedGrade !== undefined;
     const [grade, setGrade] = useState<number | undefined>(undefined);
     const [classrooms, setClassrooms] = useState<ClassroomSummary[]>([]);
     // 별분(status=3) 선택 시 학년/반을 미지정으로 비웠다가, 다시 일반/새친구로 돌아오면 복원하기 위한 원본 보관
@@ -114,14 +121,15 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                 remark: '',
                 evangelist: '',
                 birthday: undefined,
-                registeredAt: new Date(),
+                // 폼은 날짜를 yyyy-MM-dd 문자열로 다룸 (date input 값)
+                registeredAt: (defaultRegisteredAt ?? new Date()) as unknown as Date,
                 promotedAt: undefined,
                 editReason: ''
             });
-            setGrade(undefined);
-            setClassrooms([]);
+            setGrade(fixedGrade);
+            if (fixedGrade === undefined) setClassrooms([]);
         }
-    }, [studentInfo, isOpen]);
+    }, [studentInfo, isOpen, fixedGrade, defaultRegisteredAt]);
 
     useEffect(() => {
         if (grade === undefined) {
@@ -137,6 +145,15 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                 setClassrooms([]);
             });
     }, [grade]);
+
+    // 반 고정 추가 모드: 불러온 반 목록에서 그 반의 id를 찾아 채움
+    useEffect(() => {
+        if (!isOpen || studentInfo || fixedGrade === undefined) return;
+        const match = classrooms.find(c => c.grade === fixedGrade && c.classNo === fixedClassNo);
+        if (match) {
+            setFormData(prev => prev.classroomId === match.id ? prev : {...prev, grade: match.grade, classroomId: match.id});
+        }
+    }, [isOpen, studentInfo, fixedGrade, fixedClassNo, classrooms]);
 
     if (!isOpen) return null;
 
@@ -197,6 +214,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
         if (!formData.name?.trim()) return alert('이름을 입력해주세요.');
         if (formData.gender === undefined) return alert('성별을 선택해주세요.');
         if (formData.status === undefined) return alert('학적 상태를 선택해주세요.');
+        if (isFixed && !formData.classroomId) return alert('반 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
         // 등반 시에는 학년/반이 반드시 지정되어 있어야 함
         if (isPromoting && !formData.classroomId) return alert('등반 시에는 학년/반을 반드시 지정해주세요.');
         if (studentInfo && !formData.editReason?.trim()) return alert('수정 사유를 입력해주세요.');
@@ -236,7 +254,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                     </div>
                     <div>
                         <label className={styles.label}>학년 (선택)</label>
-                        <select value={grade ?? ''} disabled={formData.status === 3} onChange={(e) => {
+                        <select value={grade ?? ''} disabled={formData.status === 3 || isFixed} onChange={(e) => {
                             const gradeVal = e.target.value === '' ? undefined : Number(e.target.value);
                             setGrade(gradeVal);
                             setFormData(prev => ({...prev, grade: gradeVal, classroomId: undefined}));
@@ -251,7 +269,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                         <label className={styles.label}>반 (선택)</label>
                         <select name="classroomId" value={formData.classroomId || ''} onChange={(e) => {
                             setFormData(prev => ({...prev, classroomId: Number(e.target.value)}));
-                        }} disabled={grade === undefined || formData.status === 3} className={styles.inputField}>
+                        }} disabled={grade === undefined || formData.status === 3 || isFixed} className={styles.inputField}>
                             <option value="">{grade === undefined ? '학년을 먼저 선택하세요' : '미지정'}</option>
                             {classrooms.map(c => (
                                 <option key={c.id} value={c.id}>

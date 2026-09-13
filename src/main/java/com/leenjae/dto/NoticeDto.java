@@ -57,6 +57,39 @@ public class NoticeDto {
         }
     }
 
+    // 게시판 > 새친구/등반: 한 주(일~토)에 새로 온 친구와 등반한 친구
+    @Builder
+    public record WeeklyNewFriendResponse(
+            LocalDate weekStart,
+            LocalDate weekEnd,
+            List<WeeklyStudent> registered, // 이번 주 첫 출석(등록)
+            List<WeeklyStudent> promoted    // 이번 주 등반
+    ) {
+    }
+
+    public record WeeklyStudent(
+            Long id,
+            String name,
+            Integer grade,
+            String classNo,
+            String teacherName,
+            LocalDate date,     // 등록일 또는 등반일
+            Integer status
+    ) {
+        public static WeeklyStudent of(Student entity, LocalDate date) {
+            var c = entity.getClassroom();
+            return new WeeklyStudent(
+                    entity.getId(),
+                    entity.getName(),
+                    c != null ? c.getGrade() : null,
+                    c != null ? c.getClassNo() : null,
+                    (c != null && c.getTeacher() != null) ? c.getTeacher().getName() : null,
+                    date,
+                    entity.getStatus()
+            );
+        }
+    }
+
     public record CreateRequest() {
     }
 

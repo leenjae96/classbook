@@ -80,9 +80,9 @@ const Layout = () => {
                         <span className="icon">📝</span>
                         <span className="menu-text">출석 교사보고서</span>
                     </button>
-                    <button onClick={() => handleMenuClick(paths.noticeCategorySelect.url)}>
-                        <span className="icon">📢</span>
-                        <span className="menu-text">공지사항</span>
+                    <button onClick={() => handleMenuClick(paths.board.url)}>
+                        <span className="icon">📋</span>
+                        <span className="menu-text">게시판</span>
                     </button>
                     <button onClick={() => handleMenuClick(paths.statistics.url)}>
                         <span className="icon">📊</span>

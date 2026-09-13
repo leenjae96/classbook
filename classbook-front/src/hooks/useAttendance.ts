@@ -16,15 +16,19 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
     const [teacherAttendances, setTeacherAttendances] = useState<TeacherAttendance[]>([]);
     // 서버 시각 - 클라이언트 시각 보정값(ms). 저장 마감(14:00) 판단을 서버 기준으로 하기 위함.
     const [serverOffsetMs, setServerOffsetMs] = useState<number | null>(null);
+
+    const buildSheetUrl = useCallback(() => (
+        apiEndpoint.includes('date=')
+            ? apiEndpoint
+            : `${apiEndpoint}${apiEndpoint.includes('?') ? '&' : '?'}date=${selectedDate}`
+    ), [apiEndpoint, selectedDate]);
+
     // 1. 데이터 가져오기
     useEffect(() => {
         if (!apiEndpoint) return;
 
         setLoading(true);
-        const urlWithDate = apiEndpoint.includes('date=')
-            ? apiEndpoint
-            : `${apiEndpoint}${apiEndpoint.includes('?') ? '&' : '?'}date=${selectedDate}`;
-        apiFetch(urlWithDate)
+        apiFetch(buildSheetUrl())
             .then((data: Sheet) => {
                 setStudentAttendances(data.studentAttendances || []);
                 setTeacherReport(data.teacherReport || undefined);
@@ -37,7 +41,25 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
                 console.error("Fetch error:", err);
             })
             .finally(() => setLoading(false));
-    }, [apiEndpoint, selectedDate]);
+    }, [apiEndpoint, buildSheetUrl]);
+
+    // 학생 명단만 다시 불러오기 (새친구 추가 직후 등).
+    // 저장 전 체크한 출석/코멘트는 그대로 두고, 새로 생긴 학생만 명단에 합친다.
+    const refreshStudents = useCallback(async () => {
+        if (!apiEndpoint) return;
+        try {
+            const data: Sheet = await apiFetch(buildSheetUrl());
+            setStudentAttendances(prev => {
+                const local = new Map(prev.map(s => [s.id, s]));
+                return (data.studentAttendances || []).map(s => {
+                    const mine = local.get(s.id);
+                    return mine ? {...s, status: mine.status, comments: mine.comments} : s;
+                });
+            });
+        } catch (err) {
+            console.error("명단 갱신 실패:", err);
+        }
+    }, [apiEndpoint, buildSheetUrl]);
 
     // 2. 출석 상태 토글
     const toggleStudentAttendance = useCallback((id: number) => {
@@ -148,6 +170,7 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
         toggleTeacherAttendance,
         updateTeacherAttendanceComment,
         loading,
-        serverOffsetMs
+        serverOffsetMs,
+        refreshStudents
     };
 };
