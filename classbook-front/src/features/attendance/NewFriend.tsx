@@ -18,7 +18,8 @@ const NewFriend = () => {
         updateStudentAttendanceComment,
         submitAttendance,
         loading,
-        serverOffsetMs
+        serverOffsetMs,
+        refreshStudents
     } = useAttendance({
         apiEndpoint: '/api/attendances/new-friend/sheet',
         initialDate: getMostRecentSunday()
@@ -169,7 +170,8 @@ const NewFriend = () => {
                         });
                         alert(isEdit ? '정보가 수정되었습니다.' : '새친구가 등록되었습니다.');
                         setIsModalOpen(false);
-                        // 저장 후 목록을 갱신하기 위해 페이지 새로고침 (또는 fetch 함수 재호출)
+                        // 명단만 갱신 (저장 전 체크한 출석은 유지)
+                        refreshStudents();
                     } catch (error) {
                         console.error("학생 정보 저장 실패:", error);
                         // 번호 중복 등 서버가 내려준 메시지를 그대로 노출

@@ -88,7 +88,7 @@ export const StudentAttendanceRow = ({ studentCheck, onToggle, onCommentChange, 
                         display: 'block',
                         fontSize: '9px',
                         fontWeight: 'bold',
-                        color: '#2f9e44',
+                        color: '#e03131',
                         lineHeight: 1,
                         marginBottom: '2px'
                     }}>new</span>

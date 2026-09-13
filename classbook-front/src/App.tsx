@@ -1,4 +1,4 @@
-import {BrowserRouter, Route, Routes} from "react-router-dom";
+import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
 import {paths} from "./constants/paths.tsx";
 import CategorySelect from "./features/attendance/CategorySelect.tsx";
 import ClassroomSelect from "./features/attendance/ClassroomSelect.tsx";
@@ -8,7 +8,9 @@ import AdministrativeSheet from "./features/attendance/AdministrativeSheet.tsx";
 import NewFriend from "./features/attendance/NewFriend.tsx";
 import WorshipTeamSelect from "./features/attendance/WorshipTeamSelect.tsx";
 import WorshipTeamSheet from "./features/attendance/WorshipTeamSheet.tsx";
-import NoticePage from "./features/notice/NoticePage.tsx";
+import BoardPage from "./features/board/BoardPage.tsx";
+import BirthdayPage from "./features/board/BirthdayPage.tsx";
+import NewFriendWeeklyPage from "./features/board/NewFriendWeeklyPage.tsx";
 import StatisticsPage from "./features/statistics/StatisticsPage.tsx";
 import './App.css';
 import Layout from "./components/layout/Layout.tsx";
@@ -39,7 +41,11 @@ function App() {
                     <Route path={paths.worshipTeamSelect.url} element={<WorshipTeamSelect/>}/>
                     <Route path={paths.worshipTeamSheet.url} element={<WorshipTeamSheet/>}/>
 
-                    <Route path={paths.noticeCategorySelect.url} element={<NoticePage/>}/>
+                    <Route path={paths.board.url} element={<BoardPage/>}/>
+                    <Route path={paths.birthday.url} element={<BirthdayPage/>}/>
+                    <Route path={paths.newFriendWeekly.url} element={<NewFriendWeeklyPage/>}/>
+                    {/* 예전 공지사항 주소로 들어오면 게시판으로 */}
+                    <Route path="/notice" element={<Navigate to={paths.board.url} replace/>}/>
 
                     <Route path={paths.statistics.url} element={<StatisticsPage/>}/>
 

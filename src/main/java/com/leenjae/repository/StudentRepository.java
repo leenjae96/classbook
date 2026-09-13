@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -97,6 +98,29 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
         WHERE s.status <> 5
     """)
     List<Student> findAllForExport();
+
+    // 게시판 새친구/등반: 기간 내 첫 출석(등록)한 학생 (삭제 제외)
+    @Query("""
+        SELECT s FROM Student s
+        LEFT JOIN FETCH s.classroom c
+        LEFT JOIN FETCH c.teacher t
+        WHERE s.status <> 5
+          AND s.registeredAt BETWEEN :from AND :to
+        ORDER BY s.registeredAt ASC, s.name ASC
+    """)
+    List<Student> findRegisteredBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    // 게시판 새친구/등반: 기간 내 등반한 학생 (삭제 제외, 등반일=등록일이면 등반 이력 없음으로 간주)
+    @Query("""
+        SELECT s FROM Student s
+        LEFT JOIN FETCH s.classroom c
+        LEFT JOIN FETCH c.teacher t
+        WHERE s.status <> 5
+          AND s.promotedAt BETWEEN :from AND :to
+          AND (s.registeredAt IS NULL OR s.promotedAt <> s.registeredAt)
+        ORDER BY s.promotedAt ASC, s.name ASC
+    """)
+    List<Student> findPromotedBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
 
 
     List<Student> findByStatus(Integer status);
