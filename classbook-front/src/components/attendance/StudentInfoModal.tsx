@@ -76,6 +76,9 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
     const fixedGrade = fixedClassroom?.grade;
     const fixedClassNo = fixedClassroom?.classNo;
     const isFixed = !studentInfo && fixedGrade !== undefined;
+    // 새친구 등록(추가 모드) 여부 — 필수 입력 항목 표시/검사용
+    const isNew = !studentInfo;
+    const requiredMark = isNew ? <span className={styles.required}>*</span> : null;
     const [grade, setGrade] = useState<number | undefined>(undefined);
     const [classrooms, setClassrooms] = useState<ClassroomSummary[]>([]);
     // 별분(status=3) 선택 시 학년/반을 미지정으로 비웠다가, 다시 일반/새친구로 돌아오면 복원하기 위한 원본 보관
@@ -211,6 +214,17 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
     const isPromoting = mode === 'newFriend' && formData.status === 1;
 
     const handleSubmit = () => {
+        // 새친구 등록(추가 모드): 필수 항목(*)이 하나라도 비면 한 번에 안내
+        if (isNew) {
+            const missing =
+                !formData.name?.trim() ||
+                formData.gender === undefined ||
+                (formData.phone ?? '').replace(/[^0-9]/g, '').length < 10 ||
+                !formData.birthday ||
+                !formData.school?.trim() ||
+                !formData.address?.trim();
+            if (missing) return alert('필수 항목을 모두 입력해주세요.');
+        }
         if (!formData.name?.trim()) return alert('이름을 입력해주세요.');
         if (formData.gender === undefined) return alert('성별을 선택해주세요.');
         if (formData.status === undefined) return alert('학적 상태를 선택해주세요.');
@@ -309,7 +323,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                 {/* 2열: 연락처 */}
                 <div className={styles.formGrid}>
                     <div>
-                        <label className={styles.label}>본인 연락처</label>
+                        <label className={styles.label}>본인 연락처 {requiredMark}</label>
                         <input type="text" name="phone" value={formData.phone || ''} onChange={handleChange} placeholder="010-0000-0000" className={styles.inputField} />
                     </div>
                     <div>
@@ -321,7 +335,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                 {/* 3열: 날짜 */}
                 <div className={styles.formGrid}>
                     <div>
-                        <label className={styles.label}>생년월일</label>
+                        <label className={styles.label}>생년월일 {requiredMark}</label>
                         <input type="date" name="birthday" value={formData.birthday ? String(formData.birthday) : ''} onChange={handleChange} className={styles.inputField} />
                     </div>
                     <div>
@@ -332,7 +346,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
 
                 {/* 단일 열 입력 항목들 */}
                 <div className={styles.formGroup}>
-                    <label className={styles.label}>학교</label>
+                    <label className={styles.label}>학교 {requiredMark}</label>
                     <div className={styles.schoolInputContainer}>
                         <input type="text" name="school" value={formData.school || ''} onChange={handleChange} placeholder="예: 하남" className={styles.schoolInput} />
                         <span className={styles.schoolSuffix}>중학교</span>
@@ -347,7 +361,7 @@ export const StudentInfoModal = ({isOpen, onClose, studentInfo, onSave, onDelete
                     />
                 </div>
                 <div className={styles.formGroup}>
-                    <label className={styles.label}>주소</label>
+                    <label className={styles.label}>주소 {requiredMark}</label>
                     <input type="text" name="address" value={formData.address || ''} onChange={handleChange} className={styles.inputField} />
                 </div>
                 <div className={styles.formGroup}>

@@ -122,10 +122,7 @@ export const useAttendance = ({apiEndpoint, initialDate}: UseAttendanceProps) =>
             alert('일요일만 출석 제출이 가능해요.');
             return;
         }
-        if (teacherReport?.worship === -1) {
-            alert('선생님 예배 여부를 선택해주세요.');
-            return;
-        }
+        // 주금새(예배/금요/새벽)는 미입력이어도 저장 허용 — 1부 선생님이 2부 아이들 출석만 저장하는 경우가 있음
         // 서버 시각 기준 당일 14:00 마감 (선제 차단; 백엔드도 동일하게 검증)
         const cutoffMs = new Date(`${selectedDate}T14:00:00+09:00`).getTime();
         if (Date.now() + (serverOffsetMs ?? 0) >= cutoffMs) {
