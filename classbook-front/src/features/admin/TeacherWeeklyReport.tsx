@@ -17,6 +17,7 @@ interface TeacherWeeklyReportItem {
 
 const getWorshipText = (worship: number | null): string => {
     if (worship === null) return '-';
+    if (worship === -1) return '미입력'; // 선생님이 예배를 고르지 않고 저장한 경우
     if (worship === 0) return '미참석';
     return `${worship}부`;
 };
