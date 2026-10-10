@@ -5,6 +5,7 @@ import {useEffect, useState} from "react";
 import {Bar, BarChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis} from "recharts";
 import {apiFetch} from "../hooks/api.ts";
 import StudentQuickSearch from "../components/common/StudentQuickSearch.tsx";
+import ImageViewer from "../components/common/ImageViewer.tsx";
 
 interface WeeklyStats {
     date: string;
@@ -22,7 +23,16 @@ interface ChangelogData {
     footer?: string;
 }
 
+// 월별 이미지 공지 (public/monthly-notice.json + public/notice/*.png 만 바꾸면 됨)
+interface MonthlyNotice {
+    id: string;
+    title?: string;
+    subtitle?: string;
+    image: string;
+}
+
 const CHANGELOG_SESSION_KEY = 'changelog_seen';
+const MONTHLY_NOTICE_SESSION_KEY = 'monthly_notice_seen';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -41,6 +51,26 @@ const Home = () => {
     const closeChangelog = () => {
         sessionStorage.setItem(CHANGELOG_SESSION_KEY, '1');
         setChangelog(null);
+    };
+
+    // 월별 이미지 공지: 같은 id 를 이미 본 세션이면 띄우지 않음
+    const [notice, setNotice] = useState<MonthlyNotice | null>(null);
+    const [viewerSrc, setViewerSrc] = useState<string | null>(null);
+
+    useEffect(() => {
+        fetch('/monthly-notice.json')
+            .then(res => (res.ok ? res.json() : null))
+            .then((data: MonthlyNotice | null) => {
+                if (!data?.image) return;
+                if (sessionStorage.getItem(MONTHLY_NOTICE_SESSION_KEY) === data.id) return;
+                setNotice(data);
+            })
+            .catch(() => {});
+    }, []);
+
+    const closeNotice = () => {
+        if (notice) sessionStorage.setItem(MONTHLY_NOTICE_SESSION_KEY, notice.id);
+        setNotice(null);
     };
 
     useEffect(() => {
@@ -207,6 +237,58 @@ const Home = () => {
                     </div>
                 </div>
             )}
+
+            {/* 월별 이미지 공지 (업데이트 팝업을 닫은 뒤에 표시) */}
+            {!changelog && notice && (
+                <div style={{
+                    position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '32px 20px', boxSizing: 'border-box',
+                }}>
+                    <div style={{
+                        backgroundColor: '#fff', borderRadius: '16px', maxWidth: '460px', width: '100%',
+                        maxHeight: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+                        display: 'flex', flexDirection: 'column',
+                    }}>
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 24px 12px' }}>
+                            {notice.title && (
+                                <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '4px' }}>{notice.title}</div>
+                            )}
+                            {notice.subtitle && (
+                                <div style={{ fontSize: '12px', color: '#adb5bd', marginBottom: '12px' }}>{notice.subtitle}</div>
+                            )}
+                            <img
+                                src={notice.image}
+                                alt={notice.title ?? '공지 이미지'}
+                                onClick={() => setViewerSrc(notice.image)}
+                                style={{
+                                    width: '100%', display: 'block', borderRadius: '8px',
+                                    border: '1px solid #f1f3f5', cursor: 'zoom-in',
+                                }}
+                            />
+                            <div style={{ fontSize: '12px', color: '#adb5bd', marginTop: '8px', textAlign: 'center' }}>
+                                이미지를 누르면 크게 볼 수 있어요
+                            </div>
+                        </div>
+
+                        <div style={{ padding: '12px 24px 24px' }}>
+                            <button
+                                onClick={closeNotice}
+                                style={{
+                                    width: '100%', padding: '12px', backgroundColor: '#4361ee', color: '#fff',
+                                    border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                확인했습니다
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 이미지 뷰어 (화면 최상단 플로팅) */}
+            {viewerSrc && <ImageViewer src={viewerSrc} onClose={() => setViewerSrc(null)} />}
 
             <h2 className="dashboard-title">대시보드 홈</h2>
 
