@@ -9,6 +9,7 @@ import styles from './BirthdayPage.module.css';
 interface WeeklyStudent {
     id: number;
     name: string;
+    school: string | null;
     grade: number | null;
     classNo: string | null;
     teacherName: string | null;
@@ -66,7 +67,11 @@ const NewFriendWeeklyPage = () => {
                         <span className={styles.date}>{md(s.date)}</span>
                         <span className={styles.name}>{s.name}</span>
                         <span className={styles.classLabel}>
-                            {formatClassLabel(s.grade, s.classNo)}{s.teacherName ? ` · ${s.teacherName}쌤` : ''}
+                            {[
+                                s.school ? `${s.school}중` : null,
+                                formatClassLabel(s.grade, s.classNo),
+                                s.teacherName ? `${s.teacherName}쌤` : null,
+                            ].filter(Boolean).join(' · ')}
                         </span>
                     </div>
                 ))}
