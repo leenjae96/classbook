@@ -70,6 +70,7 @@ public class NoticeDto {
     public record WeeklyStudent(
             Long id,
             String name,
+            String school,      // 중학교 (예: '하남' → 화면에서는 '하남중')
             Integer grade,
             String classNo,
             String teacherName,
@@ -81,6 +82,7 @@ public class NoticeDto {
             return new WeeklyStudent(
                     entity.getId(),
                     entity.getName(),
+                    entity.getSchool(),
                     c != null ? c.getGrade() : null,
                     c != null ? c.getClassNo() : null,
                     (c != null && c.getTeacher() != null) ? c.getTeacher().getName() : null,
